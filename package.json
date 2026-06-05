@@ -1,0 +1,25 @@
+{
+  "name": "test-function-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/src/{index.js,functions/*.js}",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "echo \"No tests yet...\"",
+    "about": "tsc -v",
+    "azurite": "azurite --silent --skipApiVersionCheck --location ./azurite --debug ./azurite/debug.log"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "redis": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.x",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
+  }
+}
