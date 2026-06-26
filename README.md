@@ -1,41 +1,88 @@
-# Useful notes
+# Azure Functions + OpenTelemetry Sample
 
-## Export environment variables
+This sample runs an Azure Functions app locally with Redis, Azurite, and an OpenTelemetry Collector provided by Docker Compose.
+
+## Azure Prerequisites
+
+This app expects these Azure resources to already exist:
+
+- Application Insights with OpenTelemetry enabled
+- An Azure Event Hub namespace and an Event Hub named `debug`
+
+## Local Prerequisites
+
+- Node.js 24 LTS
+- npm 11 (included in Node.js)
+- Azure Functions Core Tools v4
+- Docker Desktop (or compatible container runtime)
+
+## Configure Local Settings
+
+1. Copy the template file.
 
 ```bash
-export FUNCTION_APP='<function-app>'
-export RESOURCE_GROUP='<resource-group>'
+cp local.settings.template.json local.settings.json
 ```
 
-## Update slot settings (blue)
+2. Update `local.settings.json` values:
+
+- `EventHubConnectionString`: Full Event Hub connection string including `EntityPath=debug`
+- `EventHubName`: `debug`
+- `ConsumerGroup`: Usually `$Default`
+- `RedisConnectionString`: Keep `redis://localhost:6379` for local Docker
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: Keep `http://localhost:4317` for local Docker collector
+
+## Start Dependencies (Docker Compose)
+
+Start Redis, Azurite, and the OpenTelemetry Collector:
+
 ```bash
-az functionapp config appsettings set -n $FUNCTION_APP -g $RESOURCE_GROUP --slot-settings @cloud-blue.settings.json
+docker compose up -d
 ```
 
-## Update slot settings (green)
+Check container status:
+
 ```bash
-az functionapp config appsettings set -n $FUNCTION_APP -g $RESOURCE_GROUP -s green --slot-settings @cloud-green.settings.json
+docker compose ps
 ```
 
-## Publish app (blue)
+Stop dependencies when done:
+
+```bash
+docker compose down
+```
+
+## Install and Run the Function App (npm scripts)
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Build once:
+
 ```bash
 npm run build
-func azure functionapp publish $FUNCTION_APP
 ```
 
-## Publish app (green)
+Run the app locally (this runs `prestart` first: clean + build):
+
 ```bash
-npm run build
-func azure functionapp publish $FUNCTION_APP --slot green
+npm start
 ```
 
-## Stream logs (blue)
-```bash
-func azure functionapp logstream $FUNCTION_APP  
-```
+Useful alternatives:
 
-## Stream logs (green)
-```bash
-func azure functionapp logstream $FUNCTION_APP --slot green
-```
+- Watch TypeScript compilation: `npm run watch`
+- Clean build output: `npm run clean`
+- Run local Azurite directly without Docker (optional): `npm run azurite`
+
+## Typical Local Workflow
+
+1. `docker compose up -d`
+2. `npm install`
+3. `npm start`
+4. Send events to Event Hub `debug` and observe function logs
+5. `docker compose down`
 
