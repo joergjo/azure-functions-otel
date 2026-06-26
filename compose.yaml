@@ -1,11 +1,39 @@
+
+name: azure-functions-otel
+
 services:
   redis:
     image: redis:7-alpine
-    container_name: ts-http-func-redis
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    restart: unless-stopped
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"
+    volumes:
+      - azurite-data:/data
+    restart: unless-stopped
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/conf/collector-config.yaml"]
+    environment:
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - TENANT_ID=${TENANT_ID}
+      - TRACES_ENDPOINT=${TRACES_ENDPOINT}
+      - LOGS_ENDPOINT=${LOGS_ENDPOINT}
+      - METRICS_ENDPOINT=${METRICS_ENDPOINT}
+    ports:
+      - "4317:4317"
+    volumes:
+      - ./config/collector.azure.yaml:/conf/collector-config.yaml:ro
+    restart: unless-stopped  
 
 volumes:
   redis-data:
+  azurite-data:

@@ -28,7 +28,9 @@ async function handleMessage(message: MessageType, context: InvocationContext): 
         process.exit(1);
     }
 
-    context.log(`Message handler received message ${message.eventData} for route ${message.route}`);
+    const processedCount = await redisClient.incr('messages:processed');
+
+    context.log(`Message handler received message ${message.eventData} for route ${message.route}. Processed count: ${processedCount}`);
 }
 
 function isProduction(): boolean {

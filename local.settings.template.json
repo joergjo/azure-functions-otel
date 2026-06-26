@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "EventHubConnectionString": "<INSERT_YOUR_EVENT_HUB_CONNECTION_STRING>",
+    "EventHubName": "debug",
+    "ConsumerGroup": "$Default",
+    "RedisConnectionString": "redis://localhost:6379",
+    "RedisPassword": "",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    "OTEL_SERVICE_NAME": "demo-function-app"
+  }
+}

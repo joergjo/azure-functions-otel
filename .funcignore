@@ -2,7 +2,7 @@
 *.ts
 .git*
 .vscode
-local.settings.json
+local.settings*.json
 test
 getting_started.md
 node_modules/@types/
@@ -10,3 +10,6 @@ node_modules/azure-functions-core-tools/
 node_modules/typescript/
 cloud*.settings.json
 README.md
+infra/
+deploy.sh
+compose*.yaml

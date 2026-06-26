@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+
+if [ -z "$FUNCTIONS_RESOURCE_GROUP_NAME" ]; then
+    echo "FUNCTIONS_RESOURCE_GROUP_NAME is not set. Please set it to the name of the resource group to deploy to."
+    exit 1
+fi
+
+resource_group_name="$FUNCTIONS_RESOURCE_GROUP_NAME"
+runtime=${FUNCTIONS_RUNTIME:-"node"}
+version=${FUNCTIONS_RUNTIME_VERSION:-"24"}
+location=${EVENTHUB_LOCATION:-swedencentral}
+deployment_name="$namespace-$(date +%s)"
+
+az group create \
+  --resource-group "$resource_group_name" \
+  --location "$location" \
+  --query id \
+  --tags SecurityControl=Ignore \
+  --output none
+
+func_endpoint=$(az deployment group create \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --template-file ./infra/main.bicep\
+  --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" \
+  --query properties.outputs.functionAppEndpoint.value \
+  --output tsv)
+
+ehns_endpoint=$(az deployment group show \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --query properties.outputs.eventHubNamespaceEndpoint.value \
+  --output tsv)
+
+echo "Azure resources have been deployed successfully to ${resource_group_name}." 
+echo "Azure Function endpoint: ${func_endpoint}."
+echo "Event Hub Namespace endpoint: ${ehns_endpoint}."

@@ -1,0 +1,41 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: collector:4317
+      http:
+        endpoint: collector:4318
+
+exporters:
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  otlphttp/jaeger:
+    endpoint: jaeger:4318
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: default
+
+processors:
+  batch:
+
+extensions:
+  health_check:
+    
+service:
+  telemetry:
+    logs:
+      level: "debug"
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/jaeger]
+    metrics:
+       receivers: [otlp]
+       processors: [batch]
+       exporters: [prometheus]
