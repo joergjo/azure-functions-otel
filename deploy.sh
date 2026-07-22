@@ -33,6 +33,27 @@ ehns_endpoint=$(az deployment group show \
   --query properties.outputs.eventHubNamespaceEndpoint.value \
   --output tsv)
 
+log_ingestions_endpoint=$(az deployment group show \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --query properties.outputs.logIngestionEndpoint.value \
+  --output tsv)
+
+trace_ingestion_endpoint=$(az deployment group show \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --query properties.outputs.traceIngestionEndpoint.value \
+  --output tsv)
+
+metrics_ingestion_endpoint=$(az deployment group show \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --query properties.outputs.metricsIngestionEndpoint.value \
+  --output tsv)
+
 echo "Azure resources have been deployed successfully to ${resource_group_name}." 
-echo "Azure Function endpoint: ${func_endpoint}."
-echo "Event Hub Namespace endpoint: ${ehns_endpoint}."
+echo "Azure Function endpoint: ${func_endpoint}"
+echo "Event Hub Namespace endpoint: ${ehns_endpoint}"
+echo "export LOGS_ENDPOINT='${log_ingestions_endpoint}'"
+echo "export TRACES_ENDPOINT='${trace_ingestion_endpoint}'"
+echo "export METRICS_ENDPOINT='${metrics_ingestion_endpoint}'"
