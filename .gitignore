@@ -53,3 +53,6 @@ cloud*.settings.json
 # Direnv
 .envrc
 .env
+
+# Azure CLI
+.azure/
