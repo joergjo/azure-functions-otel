@@ -6,11 +6,18 @@ if [ -z "$FUNCTIONS_RESOURCE_GROUP_NAME" ]; then
     exit 1
 fi
 
+if [ -z "$CLIENT_ID" ]; then
+    echo "CLIENT_ID is not set. Please set it to the Application (Client) ID of the OTel Collector service principal."
+    exit 1
+fi
+
 resource_group_name="$FUNCTIONS_RESOURCE_GROUP_NAME"
 runtime=${FUNCTIONS_RUNTIME:-"node"}
 version=${FUNCTIONS_RUNTIME_VERSION:-"24"}
 location=${EVENTHUB_LOCATION:-swedencentral}
-deployment_name="$namespace-$(date +%s)"
+deployment_name="main-$(date +%s)"
+
+collector_sp_id=$(az ad sp show --id "$CLIENT_ID" --query id --output tsv)
 
 az group create \
   --resource-group "$resource_group_name" \
@@ -23,7 +30,7 @@ func_endpoint=$(az deployment group create \
   --resource-group "$resource_group_name" \
   --name "$deployment_name" \
   --template-file ./infra/main.bicep\
-  --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" \
+  --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" collectorServicePrincipalId="$collector_sp_id" \
   --query properties.outputs.functionAppEndpoint.value \
   --output tsv)
 

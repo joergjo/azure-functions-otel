@@ -47,6 +47,9 @@ param hubName string = 'test'
 ])
 param eventHubSku string = 'Standard'
 
+@description('Object ID of the service principal used by the OTel Collector. This is required for the Monitoring Metrics Publisher role assignment on the Data Collection Rule. Retrieve it with: az ad sp show --id <appClientId> --query id -o tsv')
+param collectorServicePrincipalId string
+
 //********************************************
 // Modules
 //********************************************
@@ -66,6 +69,7 @@ module dataCollection 'modules/data-collection.bicep' = {
     applicationInsightsResourceId: monitoring.outputs.applicationInsightsResourceId
     azureMonitorWorkspaceResourceId: monitoring.outputs.azureMonitorWorkspaceResourceId
     logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
+    collectorServicePrincipalId: collectorServicePrincipalId
   }
 }
 
