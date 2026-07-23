@@ -7,7 +7,9 @@ This sample runs an Azure Functions app locally with Redis, Azurite, and an Open
 This app expects these Azure resources to already exist:
 
 - Application Insights with OpenTelemetry enabled
-- An Azure Event Hub namespace and an Event Hub named `debug`
+- An Azure Event Hub namespace and an Event Hub named `test`
+
+See [Deploy to Azure](#deploy-to-azure) to create the required resources using the included Bicep templates and deployment scripts. 
 
 ## Local Prerequisites
 
@@ -15,6 +17,7 @@ This app expects these Azure resources to already exist:
 - npm 11 (included in Node.js)
 - Azure Functions Core Tools v4
 - Docker Desktop (or compatible container runtime)
+- A terminal application running bash (built into macOS and Linux, on Windows use WSL2) 
 
 ## Configure Local Settings
 
@@ -126,13 +129,43 @@ orchestrator that composes three submodules in `infra/modules/`:
   dependencies: the runtime storage account, a user-assigned managed identity,
   and the role assignments granting access to storage, Application Insights, and
   the Event Hub.
+- `data-collection.bicep` — Data Collection Endpoint and Data Collection Rule for
+  OTLP ingestion, including a **Monitoring Metrics Publisher** role assignment for
+  the OTel Collector service principal.
 
-Deploy everything with the helper script (creates the resource group if needed):
+### 1. Create a service principal for the OTel Collector
+
+The OTel Collector authenticates to Azure Monitor using a service principal.
+Use the helper script to create one:
+
+```bash
+./create-sp.sh
+```
+
+An optional name argument overrides the default (`otel-collector-sp`):
+
+```bash
+./create-sp.sh my-collector-sp
+```
+
+The script prints `export` statements for `CLIENT_ID`, `CLIENT_SECRET`, and
+`TENANT_ID`. Copy them into your `.envrc`.
+
+> **Note:** Creating the SP manually is equally fine — using the Azure portal,
+> the Azure CLI (`az ad sp create-for-rbac`), or any other tool. As long as
+> `CLIENT_ID`, `CLIENT_SECRET`, and `TENANT_ID` are set in your environment
+> before running `deploy.sh`, the deployment will work correctly.
+
+### 2. Deploy the infrastructure
 
 ```bash
 export FUNCTIONS_RESOURCE_GROUP_NAME="functions-otel-dev"
 ./deploy.sh
 ```
+
+`deploy.sh` reads `CLIENT_ID` from the environment, resolves the service
+principal's Object ID, and passes it to the Bicep deployment so the role
+assignment on the Data Collection Rule is created automatically.
 
 Optional overrides (with defaults): `FUNCTIONS_RUNTIME` (`node`),
 `FUNCTIONS_RUNTIME_VERSION` (`24`), and `EVENTHUB_LOCATION` (`swedencentral`).
