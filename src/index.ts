@@ -1,34 +1,6 @@
+import { stopSDK } from './instrumentation-sdk';
 import { app, AppStartContext, PostInvocationContext, PreInvocationContext } from '@azure/functions';
-
-import { createClient, RedisClientType } from "redis";
-
-import { AzureFunctionsInstrumentation } from '@azure/functions-opentelemetry-instrumentation';
-import { getNodeAutoInstrumentations, getResourceDetectors } from '@opentelemetry/auto-instrumentations-node';
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { detectResources } from '@opentelemetry/resources';
-import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
-import { NodeTracerProvider, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-node';
-
-const resource = detectResources({ detectors: getResourceDetectors() });
-
-const tracerProvider = new NodeTracerProvider({
-    resource: resource,
-    spanProcessors: [new SimpleSpanProcessor(new OTLPTraceExporter())]
-});
-tracerProvider.register();
-
-const loggerProvider = new LoggerProvider({
-    resource: resource,
-    processors: [new SimpleLogRecordProcessor(new OTLPLogExporter())]
-});
-
-registerInstrumentations({
-    tracerProvider,
-    loggerProvider,
-    instrumentations: [getNodeAutoInstrumentations(), new AzureFunctionsInstrumentation()],
-});
+import { createClient, RedisClientType } from 'redis';
 
 let redisClient: RedisClientType;
 
@@ -61,6 +33,11 @@ app.hook.appStart(async (_: AppStartContext) => {
     console.log('Connecting to Redis...');
     await redisClient.connect();
     console.log('Connected to Redis');
+});
+
+app.hook.appTerminate(async () => {
+    await stopSDK();
+    console.log('App is shutting down...');
 });
 
 export { redisClient };

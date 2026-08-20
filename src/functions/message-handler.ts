@@ -1,5 +1,6 @@
 import { app, InvocationContext } from "@azure/functions";
 import { redisClient } from "../index";
+import { tracer } from "../trace";
 
 const productionSlots = ['blue', '$Default'];
 
@@ -13,19 +14,36 @@ export async function invoke(messages: MessageType | MessageType[], context: Inv
         context.log('Running in non-production environment. Discarding messages.');
         return;
     }
-    if (Array.isArray(messages)) {
-        context.log(`Message handler received batch of ${messages.length} messages`);
-        for (const message of messages) {
-            await handleMessage(message, context);
+    const mustCrash = await tracer.startActiveSpan('message-handler', async (span) => {
+        try {
+            if (Array.isArray(messages)) {
+                const messageCount = messages.length;
+                span.setAttribute('message.count', messageCount);
+                context.log(`Message handler received batch of ${messageCount} messages`);
+                for (const message of messages) {
+                    await handleMessage(message, context);
+                }
+            } else {
+                span.setAttribute('message.count', 1);
+                await handleMessage(messages, context);
+            }
+            return false;
+        } catch (error) {
+            span.recordException(error as Error);
+            return true;
+        } finally {
+            span.end();
         }
-    } else {
-        await handleMessage(messages, context);
+    });
+
+    if (mustCrash) {
+        process.exit(1);
     }
 }
 
 async function handleMessage(message: MessageType, context: InvocationContext): Promise<void> {
     if (!redisClient.isReady || (await redisClient.get('fail')) === 'on') {
-        process.exit(1);
+        throw new Error('Redis is not ready or fail flag is set to on');
     }
 
     const processedCount = await redisClient.incr('messages:processed');
