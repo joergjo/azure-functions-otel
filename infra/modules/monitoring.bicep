@@ -23,18 +23,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
   })
 }
 
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'appi-${resourceToken}'
-  location: location
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-    WorkspaceResourceId: logAnalytics.id
-    DisableLocalAuth: true
-  }
-}
-
-resource workspaces 'Microsoft.Monitor/accounts@2025-10-03' = {
+resource workspace 'Microsoft.Monitor/accounts@2025-10-03' = {
   name: 'ws-${resourceToken}'
   location: location
   properties: {
@@ -42,7 +31,30 @@ resource workspaces 'Microsoft.Monitor/accounts@2025-10-03' = {
   }
 }
 
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appi-${resourceToken}'
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    DisableLocalAuth: true
+    WorkspaceResourceId: logAnalytics.id
+    #disable-next-line BCP037
+    AzureMonitorWorkspaceResourceId: workspace.id
+    #disable-next-line BCP037
+    AzureMonitorWorkspaceIngestionMode: 'Enabled'
+  }
+}
+
 output applicationInsightsName string = applicationInsights.name
 output applicationInsightsResourceId string = applicationInsights.id
 output logAnalyticsWorkspaceResourceId string = logAnalytics.id
-output azureMonitorWorkspaceResourceId string = workspaces.id
+output azureMonitorWorkspaceResourceId string = workspace.id
+#disable-next-line BCP053
+output traceIngestionEndpoint string = applicationInsights.properties.OTLPTracesEndpoint
+#disable-next-line BCP053
+output logIngestionEndpoint string = applicationInsights.properties.OTLPLogsEndpoint
+#disable-next-line BCP053
+output metricsIngestionEndpoint string = applicationInsights.properties.OTLPMetricsEndpoint
+#disable-next-line BCP053
+output dataCollectionRuleResourceId string = applicationInsights.properties.DataCollectionRuleResourceId

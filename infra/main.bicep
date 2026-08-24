@@ -47,9 +47,6 @@ param hubName string = 'test'
 ])
 param eventHubSku string = 'Standard'
 
-@description('Object ID of the service principal used by the OTel Collector. This is required for the Monitoring Metrics Publisher role assignment on the Data Collection Rule. Retrieve it with: az ad sp show --id <appClientId> --query id -o tsv')
-param collectorServicePrincipalId string
-
 //********************************************
 // Modules
 //********************************************
@@ -61,18 +58,6 @@ module monitoring 'modules/monitoring.bicep' = {
     resourceToken: resourceToken
   }
 }
-
-module dataCollection 'modules/data-collection.bicep' = {
-  name: 'dataCollection'
-  params: {
-    location: location
-    applicationInsightsResourceId: monitoring.outputs.applicationInsightsResourceId
-    azureMonitorWorkspaceResourceId: monitoring.outputs.azureMonitorWorkspaceResourceId
-    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
-    collectorServicePrincipalId: collectorServicePrincipalId
-  }
-}
-
 module eventHubs 'modules/eventhubs.bicep' = {
   name: 'eventHubs'
   params: {
@@ -80,6 +65,14 @@ module eventHubs 'modules/eventhubs.bicep' = {
     namespaceName: namespaceName
     hubName: hubName
     eventHubSku: eventHubSku
+  }
+}
+
+module managedRedis 'modules/redis.bicep' = {
+  name: 'managedRedis'
+  params: {
+    location: location
+    resourceToken: resourceToken
   }
 }
 
@@ -101,6 +94,8 @@ module functions 'modules/functions.bicep' = {
 
 output functionAppEndpoint string = functions.outputs.functionAppEndpoint
 output eventHubNamespaceEndpoint string = eventHubs.outputs.serviceBusEndpoint
-output traceIngestionEndpoint string = dataCollection.outputs.traceIngestionEndpoint
-output logIngestionEndpoint string = dataCollection.outputs.logIngestionEndpoint
-output metricsIngestionEndpoint string = dataCollection.outputs.metricsIngestionEndpoint
+output managedRedisResourceId string = managedRedis.outputs.managedRedisResourceId
+output traceIngestionEndpoint string = monitoring.outputs.traceIngestionEndpoint
+output logIngestionEndpoint string = monitoring.outputs.logIngestionEndpoint
+output metricsIngestionEndpoint string = monitoring.outputs.metricsIngestionEndpoint
+output dcrResourceId string = monitoring.outputs.dataCollectionRuleResourceId

@@ -30,7 +30,7 @@ func_endpoint=$(az deployment group create \
   --resource-group "$resource_group_name" \
   --name "$deployment_name" \
   --template-file ./infra/main.bicep\
-  --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" collectorServicePrincipalId="$collector_sp_id" \
+  --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" \
   --query properties.outputs.functionAppEndpoint.value \
   --output tsv)
 
@@ -57,6 +57,21 @@ metrics_ingestion_endpoint=$(az deployment group show \
   --name "$deployment_name" \
   --query properties.outputs.metricsIngestionEndpoint.value \
   --output tsv)
+
+dcr_resource_id=$(az deployment group show \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --query properties.outputs.dcrResourceId.value \
+  --output tsv)
+
+echo "Creating role assignment for the OTel Collector service principal on the Data Collection Rule (DCR)..."
+
+az role assignment create \
+  --assignee-object-id "$collector_sp_id" \
+  --assignee-principal-type ServicePrincipal \
+  --role "3913510d-42f4-4e42-8a64-420c390055eb" \
+  --scope "$dcr_resource_id" \
+  --output none
 
 echo "Azure resources have been deployed successfully to ${resource_group_name}." 
 echo "Azure Function endpoint: ${func_endpoint}"
