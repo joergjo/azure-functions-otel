@@ -41,6 +41,15 @@ param eventHubNamespaceName string
 @description('Name of the existing Event Hub to consume messages from.')
 param eventHubName string
 
+@description('Consumer group for the Event Hub.')
+param consumerGroup string = '$Default'
+
+@description('Host name of the App Service running the OpenTelemetry Collector.')
+param otelCollectorHostName string
+
+@description('Name of the existing Azure Managed Redis cluster.')
+param managedRedisName string
+
 // Generates a unique container name for deployments.
 var deploymentStorageContainerName = 'app-package-${take(appName, 32)}-${take(resourceToken, 7)}'
 
@@ -63,6 +72,14 @@ resource eventHubNamespace 'Microsoft.EventHub/namespaces@2024-01-01' existing =
 
   resource rootManageSas 'authorizationRules' existing = {
     name: 'RootManageSharedAccessKey'
+  }
+}
+
+resource managedRedis 'Microsoft.Cache/redisEnterprise@2025-07-01' existing = {
+  name: managedRedisName
+
+  resource defaultDatabase 'databases' existing = {
+    name: 'default'
   }
 }
 
@@ -211,12 +228,18 @@ resource functionApp 'Microsoft.Web/sites@2025-03-01' = {
       AzureWebJobsStorage__clientId: userAssignedIdentity.properties.clientId
       APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsights.properties.InstrumentationKey
       APPLICATIONINSIGHTS_AUTHENTICATION_STRING: 'ClientId=${userAssignedIdentity.properties.clientId};Authorization=AAD'
-      EventHubConnectionString: 'Endpoint=${eventHubNamespace.properties.serviceBusEndpoint};SharedAccessKeyName=${eventHubNamespace::rootManageSas.name};SharedAccessKey=${eventHubNamespace::rootManageSas.listKeys().primaryKey};EntityPath=${eventHubName}'
+      EventHubConnectionString: 'Endpoint=${eventHubNamespace.properties.serviceBusEndpoint};SharedAccessKeyName=${eventHubNamespace::rootManageSas.name};SharedAccessKey=${eventHubNamespace::rootManageSas.listKeys().primaryKey}'
       EventHubName: eventHubName
-      // Leave empty to use the default consumer group for the Event Hub
-      ConsumerGroup: ''
+      ConsumerGroup: consumerGroup
+      OTEL_EXPORTER_OTLP_ENDPOINT: 'https://${otelCollectorHostName}'
+      OTEL_SERVICE_NAME: 'demo-function-app'
+      OTEL_RESOURCE_ATTRIBUTES: 'service.version=0.1.0'
+      OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: 'temporality'
+      RedisConnectionString: 'rediss://${managedRedis.properties.hostName}:${managedRedis::defaultDatabase.properties.port}'
+      RedisPassword: managedRedis::defaultDatabase.listKeys().primaryKey
     }
   }
 }
 
+output functionAppName string = functionApp.name
 output functionAppEndpoint string = functionApp.properties.defaultHostName

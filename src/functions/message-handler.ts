@@ -11,7 +11,7 @@ interface MessageType {
 
 export async function invoke(messages: MessageType | MessageType[], context: InvocationContext): Promise<void> {
     if (!isProduction()) {
-        context.log('Running in non-production environment. Discarding messages.');
+        console.log('Running in non-production environment. Discarding messages.');
         return;
     }
     const mustCrash = await tracer.startActiveSpan('message-handler', async (span) => {
@@ -19,7 +19,7 @@ export async function invoke(messages: MessageType | MessageType[], context: Inv
             if (Array.isArray(messages)) {
                 const messageCount = messages.length;
                 span.setAttribute('message.count', messageCount);
-                context.log(`Message handler received batch of ${messageCount} messages`);
+                console.log(`Message handler received batch of ${messageCount} messages`);
                 for (const message of messages) {
                     await handleMessage(message, context);
                 }
@@ -48,7 +48,7 @@ async function handleMessage(message: MessageType, context: InvocationContext): 
 
     const processedCount = await redisClient.incr('messages:processed');
 
-    context.log(`Message handler received message ${message.eventData} for route ${message.route}. Processed count: ${processedCount}`);
+    console.log(`Message handler received message ${message.eventData} for route ${message.route}. Processed count: ${processedCount}`);
 }
 
 function isProduction(): boolean {

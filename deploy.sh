@@ -11,6 +11,16 @@ if [ -z "$CLIENT_ID" ]; then
     exit 1
 fi
 
+if [ -z "$CLIENT_SECRET" ]; then
+    echo "CLIENT_SECRET is not set. Please set it to the client secret of the OTel Collector service principal."
+    exit 1
+fi
+
+if [ -z "$TENANT_ID" ]; then
+    echo "TENANT_ID is not set. Please set it to the tenant ID of the OTel Collector service principal."
+    exit 1
+fi
+
 resource_group_name="$FUNCTIONS_RESOURCE_GROUP_NAME"
 runtime=${FUNCTIONS_RUNTIME:-"node"}
 version=${FUNCTIONS_RUNTIME_VERSION:-"24"}
@@ -31,6 +41,7 @@ func_endpoint=$(az deployment group create \
   --name "$deployment_name" \
   --template-file ./infra/main.bicep\
   --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" \
+    clientId="$CLIENT_ID" clientSecret="$CLIENT_SECRET" tenantId="$TENANT_ID" \
   --query properties.outputs.functionAppEndpoint.value \
   --output tsv)
 

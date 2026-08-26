@@ -47,6 +47,22 @@ param hubName string = 'test'
 ])
 param eventHubSku string = 'Standard'
 
+@description('SKU for the Premium v4 App Service plan.')
+param appServiceSku string = 'P0v4'
+
+@description('Tier for the App Service plan.')
+param appServiceTier string = 'PremiumV4'
+
+@description('Client ID used by the OpenTelemetry Collector.')
+param clientId string
+
+@secure()
+@description('Client secret used by the OpenTelemetry Collector.')
+param clientSecret string
+
+@description('Tenant ID used by the OpenTelemetry Collector.')
+param tenantId string
+
 //********************************************
 // Modules
 //********************************************
@@ -76,6 +92,31 @@ module managedRedis 'modules/redis.bicep' = {
   }
 }
 
+module storage 'modules/storage.bicep' = {
+  name: 'storage'
+  params: {
+    location: location
+    resourceToken: resourceToken
+  }
+}
+
+module appService 'modules/appservice.bicep' = {
+  name: 'appService'
+  params: {
+    location: location
+    resourceToken: resourceToken
+    appServiceSku: appServiceSku
+    appServiceTier: appServiceTier
+    clientId: clientId
+    clientSecret: clientSecret
+    tenantId: tenantId
+    logsEndpoint: monitoring.outputs.logIngestionEndpoint
+    tracesEndpoint: monitoring.outputs.traceIngestionEndpoint
+    metricsEndpoint: monitoring.outputs.metricsIngestionEndpoint
+    collectorConfigUrl: storage.outputs.collectorConfigUrl
+  }
+}
+
 module functions 'modules/functions.bicep' = {
   name: 'functions'
   params: {
@@ -89,10 +130,14 @@ module functions 'modules/functions.bicep' = {
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     eventHubNamespaceName: eventHubs.outputs.namespaceName
     eventHubName: eventHubs.outputs.hubName
+    otelCollectorHostName: appService.outputs.appServiceEndpoint
+    managedRedisName: managedRedis.outputs.managedRedisName
   }
 }
 
+output functionsAppName string = functions.outputs.functionAppName
 output functionAppEndpoint string = functions.outputs.functionAppEndpoint
+output appServiceEndpoint string = appService.outputs.appServiceEndpoint
 output eventHubNamespaceEndpoint string = eventHubs.outputs.serviceBusEndpoint
 output managedRedisResourceId string = managedRedis.outputs.managedRedisResourceId
 output traceIngestionEndpoint string = monitoring.outputs.traceIngestionEndpoint
