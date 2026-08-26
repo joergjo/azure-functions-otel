@@ -20,6 +20,6 @@ const sdk = new NodeSDK({
 
 sdk.start()
 
-export async function stopSDK() {
+export async function shutdownOTel() {
     await sdk.shutdown();
 }

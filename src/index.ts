@@ -1,4 +1,4 @@
-import { stopSDK } from './instrumentation-sdk';
+import { shutdownOTel } from './instrumentation-sdk';
 import { app, AppStartContext, PostInvocationContext, PreInvocationContext } from '@azure/functions';
 import { createClient, RedisClientType } from 'redis';
 
@@ -36,7 +36,7 @@ app.hook.appStart(async (_: AppStartContext) => {
 });
 
 app.hook.appTerminate(async () => {
-    await stopSDK();
+    await shutdownOTel();
     console.log('App is shutting down...');
 });
 
