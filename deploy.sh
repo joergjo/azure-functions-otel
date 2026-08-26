@@ -45,6 +45,12 @@ func_endpoint=$(az deployment group create \
   --query properties.outputs.functionAppEndpoint.value \
   --output tsv)
 
+func_name=$(az deployment group show \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --query properties.outputs.functionsAppName.value \
+  --output tsv)
+
 ehns_endpoint=$(az deployment group show \
   --resource-group "$resource_group_name" \
   --name "$deployment_name" \
@@ -90,3 +96,6 @@ echo "Event Hub Namespace endpoint: ${ehns_endpoint}"
 echo "export LOGS_ENDPOINT='${log_ingestions_endpoint}'"
 echo "export TRACES_ENDPOINT='${trace_ingestion_endpoint}'"
 echo "export METRICS_ENDPOINT='${metrics_ingestion_endpoint}'"
+
+echo "You can now deploy the application by running the following command:"
+echo "func azure functionapp publish ${func_name}"
