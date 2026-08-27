@@ -31,15 +31,6 @@ param instanceMemoryMB int = 2048
 @minLength(3)
 param resourceToken string = toLower(uniqueString(subscription().id, resourceGroup().id, location))
 
-@description('A globally unique name for your deployed function app.')
-param appName string = 'func-${resourceToken}'
-
-@description('Specifies the name for the Event Hub Namespace.')
-param namespaceName string = 'ehns-${resourceToken}'
-
-@description('Specifies the name of a sample Event Hub to be created.')
-param hubName string = 'test'
-
 @description('Specifies the messaging tier for Event Hub Namespace.')
 @allowed([
   'Basic'
@@ -78,8 +69,7 @@ module eventHubs 'modules/eventhubs.bicep' = {
   name: 'eventHubs'
   params: {
     location: location
-    namespaceName: namespaceName
-    hubName: hubName
+    resourceToken: resourceToken
     eventHubSku: eventHubSku
   }
 }
@@ -122,7 +112,6 @@ module functions 'modules/functions.bicep' = {
   params: {
     location: location
     resourceToken: resourceToken
-    appName: appName
     functionAppRuntime: functionAppRuntime
     functionAppRuntimeVersion: functionAppRuntimeVersion
     maximumInstanceCount: maximumInstanceCount

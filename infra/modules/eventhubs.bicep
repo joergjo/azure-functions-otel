@@ -5,11 +5,9 @@ function app consumes messages from. */
 @minLength(1)
 param location string
 
-@description('Name for the Event Hub Namespace.')
-param namespaceName string
-
-@description('Name of the sample Event Hub to be created.')
-param hubName string
+@description('A unique token used for resource name generation.')
+@minLength(3)
+param resourceToken string
 
 @description('Messaging tier for the Event Hub Namespace.')
 @allowed([
@@ -19,7 +17,7 @@ param hubName string
 param eventHubSku string = 'Standard'
 
 resource eventHubNamespace 'Microsoft.EventHub/namespaces@2024-01-01' = {
-  name: namespaceName
+  name: 'ehns-${resourceToken}'
   location: location
   sku: {
     name: eventHubSku
@@ -35,7 +33,7 @@ resource eventHubNamespace 'Microsoft.EventHub/namespaces@2024-01-01' = {
 
 resource eventHub 'Microsoft.EventHub/namespaces/eventhubs@2024-01-01' = {
   parent: eventHubNamespace
-  name: hubName
+  name: 'test'
   properties: {
     messageRetentionInDays: 7
     partitionCount: 4

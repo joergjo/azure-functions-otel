@@ -12,9 +12,6 @@ param location string
 @minLength(3)
 param resourceToken string
 
-@description('A globally unique name for the deployed function app.')
-param appName string
-
 @description('Language runtime used by the function app.')
 @allowed(['dotnet-isolated', 'python', 'java', 'node', 'powerShell'])
 param functionAppRuntime string = 'node'
@@ -51,6 +48,7 @@ param otelCollectorHostName string
 param managedRedisName string
 
 // Generates a unique container name for deployments.
+var appName = 'func-${resourceToken}'
 var deploymentStorageContainerName = 'app-package-${take(appName, 32)}-${take(resourceToken, 7)}'
 
 // Key access to the storage account is disabled by default.
