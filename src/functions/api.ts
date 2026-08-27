@@ -1,6 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { redisClient } from "../index";
-import { redisOperationMeter } from "../metrics";
+import { redisOperationMeter, redisOperationHistogram } from "../metrics";
 import { tracer } from "../trace";
 import { SpanKind } from "@opentelemetry/api";
 
@@ -32,8 +32,11 @@ export async function incr(request: HttpRequest, context: InvocationContext): Pr
         return { status: 503, body: 'Redis is not ready' };
     }
 
+    const startTime = Date.now();
     const operation = 'incr.count';
     const count = await redisClient.incr(operation);
+    const duration = Date.now() - startTime;
+    redisOperationHistogram.record(duration, { operation: operation });
     redisOperationMeter.add(1, { operation: operation });
 
     return {
