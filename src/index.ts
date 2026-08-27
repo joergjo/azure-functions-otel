@@ -1,4 +1,4 @@
-import { shutdownOTel } from './instrumentation-sdk';
+import { shutdownOTel } from './instrumentation';
 import { app, AppStartContext, PostInvocationContext, PreInvocationContext } from '@azure/functions';
 import { createClient, RedisClientType } from 'redis';
 
