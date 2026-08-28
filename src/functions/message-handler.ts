@@ -1,6 +1,7 @@
-import { app, InvocationContext } from "@azure/functions";
-import { redisClient } from "../index";
-import { tracer } from "../trace";
+import { app, InvocationContext } from '@azure/functions';
+import { redisClient } from '../index';
+import { tracer } from '../trace';
+import { logger } from '../logger';
 
 const productionSlots = ['blue', '$Default'];
 
@@ -9,46 +10,59 @@ interface MessageType {
     route: string;
 }
 
-export async function invoke(messages: MessageType | MessageType[], context: InvocationContext): Promise<void> {
+export async function invoke(
+    messages: MessageType | MessageType[],
+    _context: InvocationContext
+): Promise<void> {
     if (!isProduction()) {
-        console.log('Running in non-production environment. Discarding messages.');
+        logger.info(
+            'Running in non-production environment, discarding messages.'
+        );
         return;
     }
-    const mustCrash = await tracer.startActiveSpan('message-handler', async (span) => {
-        try {
-            if (Array.isArray(messages)) {
-                const messageCount = messages.length;
+    const mustCrash = await tracer.startActiveSpan(
+        'message-handler',
+        async (span) => {
+            try {
+                const messageCount = Array.isArray(messages)
+                    ? messages.length
+                    : 1;
                 span.setAttribute('message.count', messageCount);
-                console.log(`Message handler received batch of ${messageCount} messages`);
-                for (const message of messages) {
-                    await handleMessage(message, context);
+                logger.info({ messageCount }, 'Processing messages');
+                if (Array.isArray(messages)) {
+                    for (const message of messages) {
+                        await handleMessage(message);
+                    }
+                } else {
+                    await handleMessage(messages);
                 }
-            } else {
-                span.setAttribute('message.count', 1);
-                await handleMessage(messages, context);
+                return false;
+            } catch (error) {
+                logger.error({ error: error }, 'Error processing messages');
+                span.recordException(error as Error);
+                return true;
+            } finally {
+                span.end();
             }
-            return false;
-        } catch (error) {
-            span.recordException(error as Error);
-            return true;
-        } finally {
-            span.end();
         }
-    });
+    );
 
     if (mustCrash) {
+        logger.fatal('Crashing due to message handling failure');
         process.exit(1);
     }
 }
 
-async function handleMessage(message: MessageType, context: InvocationContext): Promise<void> {
+async function handleMessage(message: MessageType): Promise<void> {
     if (!redisClient.isReady || (await redisClient.get('fail')) === 'on') {
         throw new Error('Redis is not ready or fail flag is set to on');
     }
 
-    const processedCount = await redisClient.incr('messages:processed');
-
-    console.log(`Message handler received message ${message.eventData} for route ${message.route}. Processed count: ${processedCount}`);
+    await redisClient.incr('messages:processed');
+    logger.info(
+        { payload: message.eventData, route: message.route },
+        'Message handled'
+    );
 }
 
 function isProduction(): boolean {
@@ -66,6 +80,6 @@ app.eventHub('messageHandler', {
         delayInterval: {
             seconds: 1,
         },
-        maxRetryCount: 1
-    }
+        maxRetryCount: 1,
+    },
 });

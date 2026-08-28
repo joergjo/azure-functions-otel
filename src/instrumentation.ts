@@ -17,16 +17,21 @@ import { AzureFunctionsInstrumentation } from '@azure/functions-opentelemetry-in
 
 const sdk = new NodeSDK({
     traceExporter: new OTLPTraceExporter(),
-    logRecordProcessors: [new SimpleLogRecordProcessor({
-        exporter: new OTLPLogExporter()
-    })],
+    logRecordProcessors: [
+        new SimpleLogRecordProcessor({
+            exporter: new OTLPLogExporter(),
+        }),
+    ],
     metricReader: new PeriodicExportingMetricReader({
         exporter: new OTLPMetricExporter(),
     }),
-    instrumentations: [getNodeAutoInstrumentations(), new AzureFunctionsInstrumentation()],
+    instrumentations: [
+        getNodeAutoInstrumentations(),
+        new AzureFunctionsInstrumentation(),
+    ],
 });
 
-sdk.start()
+sdk.start();
 
 export async function shutdownOTel() {
     await sdk.shutdown();
