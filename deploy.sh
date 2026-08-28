@@ -39,7 +39,7 @@ az group create \
 func_endpoint=$(az deployment group create \
   --resource-group "$resource_group_name" \
   --name "$deployment_name" \
-  --template-file ./infra/main.bicep\
+  --template-file ./infra/bicep/main.bicep\
   --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" \
     clientId="$CLIENT_ID" clientSecret="$CLIENT_SECRET" tenantId="$TENANT_ID" \
   --query properties.outputs.functionAppEndpoint.value \

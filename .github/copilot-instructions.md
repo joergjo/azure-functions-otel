@@ -40,7 +40,9 @@ and not the Azure Functions-specific OpenTelemetry guidance, which is outdated a
 
 ## Azure infrastructure
 
-- `infra/main.bicep` is the orchestrator. Preserve module-output references because they intentionally establish deployment dependencies.
+All infrastructure as code artifacts are defined in the `infra/bicep` directory.
+
+- `main.bicep` is the orchestrator. Preserve module-output references because they intentionally establish deployment dependencies.
 - `monitoring.bicep` creates Log Analytics, an Azure Monitor workspace, and Application Insights. Application Insights implicitly creates the DCR; the module exposes the DCR resource ID and OTLP ingestion endpoints from Application Insights properties.
 - `storage.bicep` creates the public collector-config blob and uploads `config/collector.deployed.yaml`.
 - `appservice.bicep` runs the collector and receives the config URL, Azure Monitor endpoints, and service-principal credentials.
@@ -48,6 +50,8 @@ and not the Azure Functions-specific OpenTelemetry guidance, which is outdated a
 - `functions.bicep` creates the Flex Consumption Function App, its deployment storage, user-assigned identity, role assignments, and application settings. Function runtime storage uses managed identity with shared-key access disabled.
 - `eventhubs.bicep` creates the namespace and sample hub. The generated `EventHubConnectionString` is namespace-scoped; `EventHubName` selects the entity separately, so do not add `EntityPath`.
 - `deploy.sh` requires `FUNCTIONS_RESOURCE_GROUP_NAME`, `CLIENT_ID`, `CLIENT_SECRET`, and `TENANT_ID`. It deploys Bicep, then grants the collector service principal Monitoring Metrics Publisher on the implicitly created DCR. Application code is published separately with the printed `func azure functionapp publish ...` command.
+
+Note that the creation of the Service Principal and its role assignments is handled by `deploy.sh` and must be executed before deploying the Bicep templates.
 
 ## Repository-specific conventions
 

@@ -9,7 +9,7 @@ param location string
 @minLength(3)
 param resourceToken string
 
-var collectorConfig = base64(loadTextContent('../../config/collector.deployed.yaml'))
+var collectorConfig = base64(loadTextContent('../../../config/collector.deployed.yaml'))
 
 resource storage 'Microsoft.Storage/storageAccounts@2026-04-01' = {
   name: 'stconfig${resourceToken}'
