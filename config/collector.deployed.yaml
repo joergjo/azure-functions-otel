@@ -10,7 +10,7 @@ processors:
   batch:
 
 extensions:
-  azureauth/monitor:
+  azure_auth:
     service_principal:
       client_id: ${env:CLIENT_ID}
       tenant_id: ${env:TENANT_ID}
