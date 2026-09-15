@@ -11,5 +11,5 @@ node_modules/typescript/
 cloud*.settings.json
 README.md
 infra/
-deploy.sh
+deploy*.sh
 compose*.yaml

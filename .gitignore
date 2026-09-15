@@ -56,3 +56,13 @@ cloud*.settings.json
 
 # Azure CLI
 .azure/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
