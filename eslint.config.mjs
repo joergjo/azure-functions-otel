@@ -1,13 +1,39 @@
-import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import json from "@eslint/json";
-import markdown from "@eslint/markdown";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import { defineConfig } from "eslint/config";
 
+const typescriptSourceFiles = ["src/**/*.ts"];
+
 export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs,ts,mts,cts}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: globals.browser } },
-  tseslint.configs.recommended,
-  { files: ["**/*.json"], plugins: { json }, language: "json/json", extends: ["json/recommended"] },
-  { files: ["**/*.md"], plugins: { markdown }, language: "markdown/gfm", extends: ["markdown/recommended"] },
+  {
+    ignores: [
+      ".azure/**",
+      "**/.terraform/**",
+      "azurite/**",
+      "dist/**",
+      "**/*.{js,mjs,cjs}",
+      "local.settings.json",
+      "cloud*.settings.json",
+      "**/*.tfvars.json",
+      "package-lock.json",
+    ],
+  },
+  ...tseslint.configs.recommended.map((config) => ({
+    ...config,
+    files: typescriptSourceFiles,
+  })),
+  {
+    files: typescriptSourceFiles,
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
+  },
+  {
+    ...eslintPluginPrettierRecommended,
+    files: typescriptSourceFiles,
+  },
 ]);
