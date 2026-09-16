@@ -1,4 +1,4 @@
-# Copilot Instructions
+# Coding Agent Instructions
 
 This is a an Azure Functions Node.js/TypeScript sample using the programming model v4. It uses both OpenTelemetry auto-instrumentation and manual instrumentaion for HTTP and Event Hub functions, sends OTLP telemetry through an OpenTelemetry Collector, and uses Redis for shared state and failure injection.
 
