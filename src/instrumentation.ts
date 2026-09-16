@@ -9,11 +9,13 @@ import { AzureFunctionsInstrumentation } from '@azure/functions-opentelemetry-in
 
 // All configuration is driven by standard OTel environment variables:
 //   OTEL_SERVICE_NAME                   — service name (required)
-//   OTEL_EXPORTER_OTLP_ENDPOINT         — base URL for all signals, e.g. http://otel-collector:4318
+//   OTEL_EXPORTER_OTLP_ENDPOINT         — base URL for all signals, e.g. http://collector:4317
 //   OTEL_EXPORTER_OTLP_TRACES_ENDPOINT  — override traces endpoint
 //   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT — override metrics endpoint
 //   OTEL_EXPORTER_OTLP_LOGS_ENDPOINT    — override logs endpoint
 //   OTEL_METRIC_EXPORT_INTERVAL         — metrics export interval in ms (default 60000)
+//   OTEL_TRACES_SAMPLER                 — Configure a sampler, e.g. "traceidratio"
+//   OTEL_TRACES_SAMPLER_ARG             — Configure sample arguments, e.g. "0.1" for traceidratio (i.e., sample 10% of traces)
 
 const sdk = new NodeSDK({
     traceExporter: new OTLPTraceExporter(),
