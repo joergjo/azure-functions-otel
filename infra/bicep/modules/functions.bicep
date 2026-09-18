@@ -47,6 +47,12 @@ param otelCollectorHostName string
 @description('Name of the existing Azure Managed Redis cluster.')
 param managedRedisName string
 
+@description('Value for the Function App OTEL_TRACES_SAMPLER setting. Left unset when empty.')
+param otelTracesSampler string = ''
+
+@description('Value for the Function App OTEL_TRACES_SAMPLER_ARG setting. Left unset when empty.')
+param otelTracesSamplerArg string = ''
+
 // Generates a unique container name for deployments.
 var appName = 'func-${resourceToken}'
 var deploymentStorageContainerName = 'app-package-${take(appName, 32)}-${take(resourceToken, 7)}'
@@ -220,22 +226,26 @@ resource functionApp 'Microsoft.Web/sites@2025-03-01' = {
   }
   resource configAppSettings 'config' = {
     name: 'appsettings'
-    properties: {
-      AzureWebJobsStorage__accountName: storage.name
-      AzureWebJobsStorage__credential: 'managedidentity'
-      AzureWebJobsStorage__clientId: userAssignedIdentity.properties.clientId
-      APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsights.properties.InstrumentationKey
-      APPLICATIONINSIGHTS_AUTHENTICATION_STRING: 'ClientId=${userAssignedIdentity.properties.clientId};Authorization=AAD'
-      EventHubConnectionString: 'Endpoint=${eventHubNamespace.properties.serviceBusEndpoint};SharedAccessKeyName=${eventHubNamespace::rootManageSas.name};SharedAccessKey=${eventHubNamespace::rootManageSas.listKeys().primaryKey}'
-      EventHubName: eventHubName
-      ConsumerGroup: consumerGroup
-      OTEL_EXPORTER_OTLP_ENDPOINT: 'https://${otelCollectorHostName}'
-      OTEL_SERVICE_NAME: 'demo-function-app'
-      OTEL_RESOURCE_ATTRIBUTES: 'service.version=0.1.0'
-      OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: 'temporality'
-      RedisConnectionString: 'rediss://${managedRedis.properties.hostName}:${managedRedis::defaultDatabase.properties.port}'
-      RedisPassword: managedRedis::defaultDatabase.listKeys().primaryKey
-    }
+    properties: union(
+      {
+        AzureWebJobsStorage__accountName: storage.name
+        AzureWebJobsStorage__credential: 'managedidentity'
+        AzureWebJobsStorage__clientId: userAssignedIdentity.properties.clientId
+        APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsights.properties.InstrumentationKey
+        APPLICATIONINSIGHTS_AUTHENTICATION_STRING: 'ClientId=${userAssignedIdentity.properties.clientId};Authorization=AAD'
+        EventHubConnectionString: 'Endpoint=${eventHubNamespace.properties.serviceBusEndpoint};SharedAccessKeyName=${eventHubNamespace::rootManageSas.name};SharedAccessKey=${eventHubNamespace::rootManageSas.listKeys().primaryKey}'
+        EventHubName: eventHubName
+        ConsumerGroup: consumerGroup
+        OTEL_EXPORTER_OTLP_ENDPOINT: 'https://${otelCollectorHostName}'
+        OTEL_SERVICE_NAME: 'demo-function-app'
+        OTEL_RESOURCE_ATTRIBUTES: 'service.version=0.1.0'
+        OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: 'temporality'
+        RedisConnectionString: 'rediss://${managedRedis.properties.hostName}:${managedRedis::defaultDatabase.properties.port}'
+        RedisPassword: managedRedis::defaultDatabase.listKeys().primaryKey
+      },
+      empty(otelTracesSampler) ? {} : { OTEL_TRACES_SAMPLER: otelTracesSampler },
+      empty(otelTracesSamplerArg) ? {} : { OTEL_TRACES_SAMPLER_ARG: otelTracesSamplerArg }
+    )
   }
 }
 

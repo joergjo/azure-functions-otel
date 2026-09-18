@@ -91,6 +91,18 @@ variable "redis_primary_access_key" {
   sensitive   = true
 }
 
+variable "otel_traces_sampler" {
+  description = "Value for the Function App's OTEL_TRACES_SAMPLER setting. Left unset when empty."
+  type        = string
+  default     = ""
+}
+
+variable "otel_traces_sampler_arg" {
+  description = "Value for the Function App's OTEL_TRACES_SAMPLER_ARG setting. Left unset when empty."
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "Tags to apply to Function App resources."
   type        = map(string)

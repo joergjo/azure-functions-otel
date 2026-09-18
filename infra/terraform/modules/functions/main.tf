@@ -108,22 +108,26 @@ resource "azurerm_function_app_flex_consumption" "this" {
     minimum_tls_version = "1.2"
   }
 
-  app_settings = {
-    AzureWebJobsStorage__accountName                  = azurerm_storage_account.runtime.name
-    AzureWebJobsStorage__credential                   = "managedidentity"
-    AzureWebJobsStorage__clientId                     = azurerm_user_assigned_identity.data_owner.client_id
-    APPINSIGHTS_INSTRUMENTATIONKEY                    = var.application_insights_instrumentation_key
-    APPLICATIONINSIGHTS_AUTHENTICATION_STRING         = "ClientId=${azurerm_user_assigned_identity.data_owner.client_id};Authorization=AAD"
-    EventHubConnectionString                          = var.event_hub_primary_connection_string
-    EventHubName                                      = var.event_hub_name
-    ConsumerGroup                                     = var.consumer_group
-    OTEL_EXPORTER_OTLP_ENDPOINT                       = var.otel_collector_https_endpoint
-    OTEL_SERVICE_NAME                                 = "demo-function-app"
-    OTEL_RESOURCE_ATTRIBUTES                          = "service.version=0.1.0"
-    OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE = "temporality"
-    RedisConnectionString                             = "rediss://${var.redis_hostname}:${var.redis_port}"
-    RedisPassword                                     = var.redis_primary_access_key
-  }
+  app_settings = merge(
+    {
+      AzureWebJobsStorage__accountName                  = azurerm_storage_account.runtime.name
+      AzureWebJobsStorage__credential                   = "managedidentity"
+      AzureWebJobsStorage__clientId                     = azurerm_user_assigned_identity.data_owner.client_id
+      APPINSIGHTS_INSTRUMENTATIONKEY                    = var.application_insights_instrumentation_key
+      APPLICATIONINSIGHTS_AUTHENTICATION_STRING         = "ClientId=${azurerm_user_assigned_identity.data_owner.client_id};Authorization=AAD"
+      EventHubConnectionString                          = var.event_hub_primary_connection_string
+      EventHubName                                      = var.event_hub_name
+      ConsumerGroup                                     = var.consumer_group
+      OTEL_EXPORTER_OTLP_ENDPOINT                       = var.otel_collector_https_endpoint
+      OTEL_SERVICE_NAME                                 = "demo-function-app"
+      OTEL_RESOURCE_ATTRIBUTES                          = "service.version=0.1.0"
+      OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE = "temporality"
+      RedisConnectionString                             = "rediss://${var.redis_hostname}:${var.redis_port}"
+      RedisPassword                                     = var.redis_primary_access_key
+    },
+    var.otel_traces_sampler == "" ? {} : { OTEL_TRACES_SAMPLER = var.otel_traces_sampler },
+    var.otel_traces_sampler_arg == "" ? {} : { OTEL_TRACES_SAMPLER_ARG = var.otel_traces_sampler_arg },
+  )
 
   tags = var.tags
 

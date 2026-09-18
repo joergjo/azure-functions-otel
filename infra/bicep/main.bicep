@@ -54,6 +54,12 @@ param clientSecret string
 @description('Tenant ID used by the OpenTelemetry Collector.')
 param tenantId string
 
+@description('Value for the Function App OTEL_TRACES_SAMPLER setting. Left unset when empty.')
+param otelTracesSampler string = ''
+
+@description('Value for the Function App OTEL_TRACES_SAMPLER_ARG setting. Left unset when empty.')
+param otelTracesSamplerArg string = ''
+
 //********************************************
 // Modules
 //********************************************
@@ -121,6 +127,8 @@ module functions 'modules/functions.bicep' = {
     eventHubName: eventHubs.outputs.hubName
     otelCollectorHostName: appService.outputs.appServiceEndpoint
     managedRedisName: managedRedis.outputs.managedRedisName
+    otelTracesSampler: otelTracesSampler
+    otelTracesSamplerArg: otelTracesSamplerArg
   }
 }
 

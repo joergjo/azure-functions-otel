@@ -46,6 +46,14 @@ export TF_VAR_tenant_id="$TENANT_ID"
 export TF_VAR_collector_principal_id
 TF_VAR_collector_principal_id=$(az ad sp show --id "$CLIENT_ID" --query id --output tsv)
 
+if [ -n "${SAMPLER:-}" ]; then
+  export TF_VAR_otel_traces_sampler="$SAMPLER"
+fi
+
+if [ -n "${SAMPLER_ARG:-}" ]; then
+  export TF_VAR_otel_traces_sampler_arg="$SAMPLER_ARG"
+fi
+
 terraform_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")/infra/terraform" && pwd)"
 cd "$terraform_directory"
 

@@ -78,5 +78,7 @@ module "functions" {
   redis_hostname                           = module.redis.hostname
   redis_port                               = module.redis.port
   redis_primary_access_key                 = module.redis.primary_access_key
+  otel_traces_sampler                      = var.otel_traces_sampler
+  otel_traces_sampler_arg                  = var.otel_traces_sampler_arg
   tags                                     = local.tags
 }

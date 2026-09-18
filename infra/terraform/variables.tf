@@ -102,3 +102,15 @@ variable "collector_principal_id" {
   description = "Object ID of the OpenTelemetry Collector service principal."
   type        = string
 }
+
+variable "otel_traces_sampler" {
+  description = "Value for the Function App's OTEL_TRACES_SAMPLER setting. Left unset when empty."
+  type        = string
+  default     = ""
+}
+
+variable "otel_traces_sampler_arg" {
+  description = "Value for the Function App's OTEL_TRACES_SAMPLER_ARG setting. Left unset when empty."
+  type        = string
+  default     = ""
+}

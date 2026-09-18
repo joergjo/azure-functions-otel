@@ -29,6 +29,14 @@ deployment_name="main-$(date +%s)"
 
 collector_sp_id=$(az ad sp show --id "$CLIENT_ID" --query id --output tsv)
 
+sampler_parameters=()
+if [ -n "${SAMPLER:-}" ]; then
+  sampler_parameters+=("otelTracesSampler=$SAMPLER")
+fi
+if [ -n "${SAMPLER_ARG:-}" ]; then
+  sampler_parameters+=("otelTracesSamplerArg=$SAMPLER_ARG")
+fi
+
 az group create \
   --resource-group "$resource_group_name" \
   --location "$location" \
@@ -42,6 +50,7 @@ func_endpoint=$(az deployment group create \
   --template-file ./infra/bicep/main.bicep\
   --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" \
     clientId="$CLIENT_ID" clientSecret="$CLIENT_SECRET" tenantId="$TENANT_ID" \
+    "${sampler_parameters[@]}" \
   --query properties.outputs.functionAppEndpoint.value \
   --output tsv)
 
