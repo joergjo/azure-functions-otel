@@ -1,0 +1,15 @@
+- .azure/
+- .git/
+- .github/
+- bin/
+- obj/
+- node_modules/
+- .env
+- .envrc
+- local.settings.json
+- .terraform/
+- *.tfstate
+- *.tfstate.*
+- *.tfplan
+- *.tfvars
+- *.tfvars.json
