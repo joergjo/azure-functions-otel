@@ -28,7 +28,7 @@ service:
   telemetry:
     logs:
       level: "debug"
-  extensions: [health_check, azureauth/monitor]
+  extensions: [health_check, azure_auth]
   pipelines:
     traces:
       receivers: [otlp]
