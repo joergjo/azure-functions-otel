@@ -6,6 +6,9 @@
 - node_modules/
 - .env
 - .envrc
+- .prettierrc
+- .gitattributes
+- .editorconfig
 - local.settings.json
 - .terraform/
 - *.tfstate
@@ -13,3 +16,4 @@
 - *.tfplan
 - *.tfvars
 - *.tfvars.json
+
