@@ -16,12 +16,18 @@ resource "azurerm_service_plan" "collector" {
 }
 
 resource "azurerm_linux_web_app" "collector" {
-  name                = "app-${var.resource_token}"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  service_plan_id     = azurerm_service_plan.collector.id
-  https_only          = true
-  tags                = var.tags
+  name                                     = "app-${var.resource_token}"
+  resource_group_name                      = var.resource_group_name
+  location                                 = var.location
+  service_plan_id                          = azurerm_service_plan.collector.id
+  https_only                               = true
+  client_certificate_enabled               = false
+  ftp_publish_basic_authentication_enabled = false
+  tags                                     = var.tags
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   app_settings = {
     WEBSITES_PORT    = "4318"
@@ -35,12 +41,28 @@ resource "azurerm_linux_web_app" "collector" {
   }
 
   site_config {
-    app_command_line = "--config=${var.collector_config_url}"
-    http2_enabled    = true
+    app_command_line        = "--config=${var.collector_config_url}"
+    always_on               = true
+    ftps_state              = "Disabled"
+    http2_enabled           = true
+    minimum_tls_version     = "1.2"
+    scm_minimum_tls_version = "1.2"
 
     application_stack {
-      docker_image_name   = "otel/opentelemetry-collector-contrib:latest"
+      docker_image_name   = "otel/opentelemetry-collector-contrib:${var.collector_image_tag}"
       docker_registry_url = "https://index.docker.io"
+    }
+  }
+
+  logs {
+    detailed_error_messages = true
+    failed_request_tracing  = true
+
+    http_logs {
+      file_system {
+        retention_in_days = 7
+        retention_in_mb   = 35
+      }
     }
   }
 }

@@ -39,6 +39,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
     Application_Type: 'web'
     DisableLocalAuth: true
     WorkspaceResourceId: logAnalytics.id
+    // Setting the following attributes enables full OTLP capabilities
     #disable-next-line BCP037
     AzureMonitorWorkspaceResourceId: workspace.id
     #disable-next-line BCP037

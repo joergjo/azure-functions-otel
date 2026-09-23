@@ -13,9 +13,13 @@ and _not the Azure Functions-specific OpenTelemetry guidance, which is outdated 
 - `npm run build` — compile TypeScript with `tsc` into `dist/`.
 - `npm run watch` — run the TypeScript compiler in watch mode.
 - `npm run clean` — remove `dist/`.
-- `npm start` — clean, build, then run `func start`.
+- `npm run prestart` — clean and compile the application before startup; npm invokes this automatically before `npm start`.
+- `npm start` — run the Functions host with `func start`.
 - `npm test` — placeholder only; there is no test suite and therefore no single-test command.
-- There is no configured lint command.
+- `npm run lint` — run ESLint across the repository without installing packages.
+- `npm run lint:fix` — run ESLint with automatic fixes.
+- `npm run about` — print the installed TypeScript compiler version.
+- `npm run azurite` — start Azurite silently with API-version checks disabled, storing data and debug logs under `./azurite/`.
 - `az bicep build --file infra/bicep/main.bicep` — compile and validate the complete Bicep deployment.
 - `terraform -chdir=infra/terraform fmt -check -recursive` — check Terraform formatting.
 - `terraform -chdir=infra/terraform init -backend=false && terraform -chdir=infra/terraform validate` — initialize providers without a backend and validate Terraform.

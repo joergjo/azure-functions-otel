@@ -15,6 +15,10 @@ param appServiceSku string
 @description('Tier for the App Service plan.')
 param appServiceTier string
 
+@description('Tag and optional digest for the OpenTelemetry Collector Contrib container image.')
+@minLength(1)
+param collectorImageTag string
+
 @description('Client ID used by the OpenTelemetry Collector.')
 param clientId string
 
@@ -37,6 +41,41 @@ param metricsEndpoint string
 @description('Absolute URL of the OpenTelemetry Collector configuration.')
 param collectorConfigUrl string
 
+var collectorAppSettings = [
+  {
+    name: 'WEBSITES_PORT'
+    value: '4318'
+  }
+  {
+    name: 'HTTP20_ONLY_PORT'
+    value: '4317'
+  }
+  {
+    name: 'CLIENT_ID'
+    value: clientId
+  }
+  {
+    name: 'CLIENT_SECRET'
+    value: clientSecret
+  }
+  {
+    name: 'TENANT_ID'
+    value: tenantId
+  }
+  {
+    name: 'LOGS_ENDPOINT'
+    value: logsEndpoint
+  }
+  {
+    name: 'TRACES_ENDPOINT'
+    value: tracesEndpoint
+  }
+  {
+    name: 'METRICS_ENDPOINT'
+    value: metricsEndpoint
+  }
+]
+
 resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' = {
   name: 'asp-${resourceToken}'
   location: location
@@ -55,48 +94,25 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
   name: 'app-${resourceToken}'
   location: location
   kind: 'app,linux,container'
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: appServicePlan.id
     httpsOnly: true
+    clientCertEnabled: false
     siteConfig: {
-      linuxFxVersion: 'DOCKER|otel/opentelemetry-collector-contrib:latest'
+      linuxFxVersion: 'DOCKER|otel/opentelemetry-collector-contrib:${collectorImageTag}'
       appCommandLine: '--config=${collectorConfigUrl}'
       http20Enabled: true
       http20ProxyFlag: 2
-      appSettings: [
-        {
-          name: 'WEBSITES_PORT'
-          value: '4318'
-        }
-        {
-          name: 'HTTP20_ONLY_PORT'
-          value: '4317'
-        }
-        {
-          name: 'CLIENT_ID'
-          value: clientId
-        }
-        {
-          name: 'CLIENT_SECRET'
-          value: clientSecret
-        }
-        {
-          name: 'TENANT_ID'
-          value: tenantId
-        }
-        {
-          name: 'LOGS_ENDPOINT'
-          value: logsEndpoint
-        }
-        {
-          name: 'TRACES_ENDPOINT'
-          value: tracesEndpoint
-        }
-        {
-          name: 'METRICS_ENDPOINT'
-          value: metricsEndpoint
-        }
-      ]
+      ftpsState: 'Disabled'
+      minTlsVersion: '1.2'
+      httpLoggingEnabled: true
+      detailedErrorLoggingEnabled: true
+      requestTracingEnabled: true
+      appSettings: collectorAppSettings
+      alwaysOn: true
     }
   }
 }

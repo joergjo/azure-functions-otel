@@ -28,6 +28,11 @@ variable "resource_token" {
   }
 }
 
+variable "log_analytics_workspace_resource_id" {
+  description = "Resource ID of the Log Analytics workspace receiving Blob service diagnostics."
+  type        = string
+}
+
 variable "collector_config_source_path" {
   description = "Optional path to collector.deployed.yaml. Set exactly one of this variable or collector_config_content."
   type        = string

@@ -42,6 +42,11 @@ variable "application_insights_resource_id" {
   type        = string
 }
 
+variable "log_analytics_workspace_resource_id" {
+  description = "Resource ID of the Log Analytics workspace receiving Blob service diagnostics."
+  type        = string
+}
+
 variable "application_insights_instrumentation_key" {
   description = "Instrumentation key produced by the Application Insights module."
   type        = string

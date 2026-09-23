@@ -29,9 +29,10 @@ resource "azapi_resource" "application_insights" {
   body = {
     kind = "web"
     properties = {
-      Application_Type                   = "web"
-      DisableLocalAuth                   = true
-      WorkspaceResourceId                = azurerm_log_analytics_workspace.this.id
+      Application_Type    = "web"
+      DisableLocalAuth    = true
+      WorkspaceResourceId = azurerm_log_analytics_workspace.this.id
+      # Setting the following attributes enables full OTLP capabilities
       AzureMonitorWorkspaceResourceId    = azurerm_monitor_workspace.this.id
       AzureMonitorWorkspaceIngestionMode = "Enabled"
     }

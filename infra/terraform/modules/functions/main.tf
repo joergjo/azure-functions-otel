@@ -32,6 +32,16 @@ resource "azurerm_storage_container" "app_package" {
   container_access_type = "private"
 }
 
+resource "azurerm_monitor_diagnostic_setting" "runtime_blob_reads" {
+  name                       = "blob-read-logs"
+  target_resource_id         = "${azurerm_storage_account.runtime.id}/blobServices/default"
+  log_analytics_workspace_id = var.log_analytics_workspace_resource_id
+
+  enabled_log {
+    category = "StorageRead"
+  }
+}
+
 resource "azurerm_user_assigned_identity" "data_owner" {
   name                = "uai-data-owner-${var.resource_token}"
   resource_group_name = var.resource_group_name

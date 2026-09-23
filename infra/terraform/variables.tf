@@ -82,6 +82,17 @@ variable "app_service_tier" {
   default     = "PremiumV4"
 }
 
+variable "collector_image_tag" {
+  description = "Tag and optional digest for the OpenTelemetry Collector Contrib container image."
+  type        = string
+  default     = "0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1"
+
+  validation {
+    condition     = length(trimspace(var.collector_image_tag)) > 0
+    error_message = "collector_image_tag must not be empty."
+  }
+}
+
 variable "client_id" {
   description = "Client ID used by the OpenTelemetry Collector."
   type        = string

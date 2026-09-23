@@ -30,3 +30,13 @@ resource "azurerm_storage_blob" "collector_config" {
   content_md5          = md5(local.collector_config_content)
   content_type         = "application/yaml"
 }
+
+resource "azurerm_monitor_diagnostic_setting" "collector_config_blob_reads" {
+  name                       = "blob-read-logs"
+  target_resource_id         = "${azurerm_storage_account.collector_config.id}/blobServices/default"
+  log_analytics_workspace_id = var.log_analytics_workspace_resource_id
+
+  enabled_log {
+    category = "StorageRead"
+  }
+}

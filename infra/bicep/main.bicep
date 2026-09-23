@@ -29,6 +29,7 @@ param instanceMemoryMB int = 2048
 
 @description('A unique token used for resource name generation.')
 @minLength(3)
+@maxLength(13)
 param resourceToken string = toLower(uniqueString(subscription().id, resourceGroup().id, location))
 
 @description('Specifies the messaging tier for Event Hub Namespace.')
@@ -43,6 +44,10 @@ param appServiceSku string = 'P0v4'
 
 @description('Tier for the App Service plan.')
 param appServiceTier string = 'PremiumV4'
+
+@description('Tag and optional digest for the OpenTelemetry Collector Contrib container image.')
+@minLength(1)
+param collectorImageTag string = '0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1'
 
 @description('Client ID used by the OpenTelemetry Collector.')
 param clientId string
@@ -93,6 +98,7 @@ module storage 'modules/storage.bicep' = {
   params: {
     location: location
     resourceToken: resourceToken
+    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
   }
 }
 
@@ -103,6 +109,7 @@ module appService 'modules/appservice.bicep' = {
     resourceToken: resourceToken
     appServiceSku: appServiceSku
     appServiceTier: appServiceTier
+    collectorImageTag: collectorImageTag
     clientId: clientId
     clientSecret: clientSecret
     tenantId: tenantId
@@ -123,6 +130,7 @@ module functions 'modules/functions.bicep' = {
     maximumInstanceCount: maximumInstanceCount
     instanceMemoryMB: instanceMemoryMB
     applicationInsightsName: monitoring.outputs.applicationInsightsName
+    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
     eventHubNamespaceName: eventHubs.outputs.namespaceName
     eventHubName: eventHubs.outputs.hubName
     otelCollectorHostName: appService.outputs.appServiceEndpoint

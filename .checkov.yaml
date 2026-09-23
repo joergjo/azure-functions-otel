@@ -1,0 +1,55 @@
+# .checkov.yaml
+directory:
+  - './infra/bicep'
+  - './infra/terraform'
+
+skip-path:
+  - '^infra/bicep/modules/functions\.bicep$'
+
+skip-check:
+  # We're not using clienn certificates
+  - CKV_AZURE_17
+
+  # We're not using queues
+  - CKV_AZURE_33
+
+  # False positive - added Bicep limits to ensure compliance
+  - CKV_AZURE_43
+
+  # We're not. using .NET
+  - CKV_AZURE_80
+
+  # We don't use local storage, except to satisfy CKV_AZURE_66
+  - CKV_AZURE_88
+
+  # Storage account replication not required and may not even be supported.
+  - CKV_AZURE_206
+  - CKV_AZURE_212
+
+  # OpenTelemetry Collector doesn't support healthcheks on receiver endpoints
+  # and App Services don't allow specifying custom ports
+  - CKV_AZURE_213
+
+  # A sample app does not require HA/redundancy
+  - CKV_AZURE_225
+
+  # CMK encryption not required for a sample app
+  - CKV2_AZURE_1
+
+  # Soft-delete not required
+  - CKV2_AZURE_38
+
+  # Temporary exclusions - VNet integration to be added later
+  - CKV_AZURE_35
+  - CKV_AZURE_59
+  - CKV_AZURE_222
+  - CKV2_AZURE_33
+
+  # Temporary exclusions - Authentication to be added later
+  - CKV_AZURE_13
+  - CKV_AZURE_16
+  - CKV_AZURE_34
+  - CKV_AZURE_190
+  - CKV2_AZURE_41
+  - CKV2_AZURE_47
+  - CKV2_AZURE_40

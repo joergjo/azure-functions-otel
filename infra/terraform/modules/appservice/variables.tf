@@ -45,6 +45,16 @@ variable "app_service_tier" {
   default     = "PremiumV4"
 }
 
+variable "collector_image_tag" {
+  description = "Tag and optional digest for the OpenTelemetry Collector Contrib container image."
+  type        = string
+
+  validation {
+    condition     = length(trimspace(var.collector_image_tag)) > 0
+    error_message = "collector_image_tag must not be empty."
+  }
+}
+
 variable "client_id" {
   description = "Client ID used by the OpenTelemetry Collector."
   type        = string

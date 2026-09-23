@@ -37,6 +37,11 @@ if [ -n "${SAMPLER_ARG:-}" ]; then
   sampler_parameters+=("otelTracesSamplerArg=$SAMPLER_ARG")
 fi
 
+collector_parameters=()
+if [ -n "${COLLECTOR_VERSION:-}" ]; then
+  collector_parameters+=("collectorImageTag=$COLLECTOR_VERSION")
+fi
+
 az group create \
   --resource-group "$resource_group_name" \
   --location "$location" \
@@ -50,6 +55,7 @@ func_endpoint=$(az deployment group create \
   --template-file ./infra/bicep/main.bicep\
   --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" \
     clientId="$CLIENT_ID" clientSecret="$CLIENT_SECRET" tenantId="$TENANT_ID" \
+    "${collector_parameters[@]}" \
     "${sampler_parameters[@]}" \
   --query properties.outputs.functionAppEndpoint.value \
   --output tsv)

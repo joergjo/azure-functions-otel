@@ -32,6 +32,9 @@ param instanceMemoryMB int = 2048
 @description('Name of the existing Application Insights component to connect to.')
 param applicationInsightsName string
 
+@description('Resource ID of the Log Analytics workspace receiving Blob service diagnostics.')
+param logAnalyticsWorkspaceResourceId string
+
 @description('Name of the existing Event Hub Namespace to consume messages from.')
 param eventHubNamespaceName string
 
@@ -122,6 +125,20 @@ resource storage 'Microsoft.Storage/storageAccounts@2026-04-01' = {
 resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: 'uai-data-owner-${resourceToken}'
   location: location
+}
+
+resource runtimeBlobDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'blob-read-logs'
+  scope: storage::blobServices
+  properties: {
+    workspaceId: logAnalyticsWorkspaceResourceId
+    logs: [
+      {
+        category: 'StorageRead'
+        enabled: true
+      }
+    ]
+  }
 }
 
 resource roleAssignmentBlobDataOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {

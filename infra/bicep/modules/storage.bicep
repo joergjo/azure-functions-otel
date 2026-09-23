@@ -9,6 +9,9 @@ param location string
 @minLength(3)
 param resourceToken string
 
+@description('Resource ID of the Log Analytics workspace receiving Blob service diagnostics.')
+param logAnalyticsWorkspaceResourceId string
+
 var collectorConfig = base64(loadTextContent('../../../config/collector.deployed.yaml'))
 
 resource storage 'Microsoft.Storage/storageAccounts@2026-04-01' = {
@@ -76,6 +79,20 @@ resource uploadCollectorConfig 'Microsoft.Resources/deploymentScripts@2023-08-01
         --overwrite true \
         --only-show-errors
     '''
+  }
+}
+
+resource collectorConfigBlobDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'blob-read-logs'
+  scope: storage::blobService
+  properties: {
+    workspaceId: logAnalyticsWorkspaceResourceId
+    logs: [
+      {
+        category: 'StorageRead'
+        enabled: true
+      }
+    ]
   }
 }
 

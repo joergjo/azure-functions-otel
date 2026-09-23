@@ -11,7 +11,7 @@
     "start": "func start",
     "test": "echo \"No tests yet...\"",
     "lint": "npx --no-install eslint .",
-    "linx:fix": "npx --no-install eslint . --fix",
+    "lint:fix": "npx --no-install eslint . --fix",
     "about": "tsc -v",
     "azurite": "azurite --silent --skipApiVersionCheck --location ./azurite --debug ./azurite/debug.log"
   },

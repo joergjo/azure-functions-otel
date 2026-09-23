@@ -35,11 +35,12 @@ module "redis" {
 module "storage" {
   source = "./modules/storage"
 
-  resource_group_name      = azurerm_resource_group.this.name
-  location                 = azurerm_resource_group.this.location
-  resource_token           = local.resource_token
-  collector_config_content = file("${path.root}/../../config/collector.deployed.yaml")
-  tags                     = local.tags
+  resource_group_name                 = azurerm_resource_group.this.name
+  location                            = azurerm_resource_group.this.location
+  resource_token                      = local.resource_token
+  log_analytics_workspace_resource_id = module.monitoring.log_analytics_workspace_resource_id
+  collector_config_content            = file("${path.root}/../../config/collector.deployed.yaml")
+  tags                                = local.tags
 }
 
 module "appservice" {
@@ -50,6 +51,7 @@ module "appservice" {
   resource_token       = local.resource_token
   app_service_sku      = var.app_service_sku
   app_service_tier     = var.app_service_tier
+  collector_image_tag  = var.collector_image_tag
   client_id            = var.client_id
   client_secret        = var.client_secret
   tenant_id            = var.tenant_id
@@ -71,6 +73,7 @@ module "functions" {
   maximum_instance_count                   = var.maximum_instance_count
   instance_memory_mb                       = var.instance_memory_mb
   application_insights_resource_id         = module.monitoring.application_insights_resource_id
+  log_analytics_workspace_resource_id      = module.monitoring.log_analytics_workspace_resource_id
   application_insights_instrumentation_key = module.monitoring.application_insights_instrumentation_key
   event_hub_name                           = module.eventhubs.hub_name
   event_hub_primary_connection_string      = module.eventhubs.primary_connection_string
