@@ -265,11 +265,14 @@ traces_endpoint=$(terraform output -raw trace_ingestion_endpoint)
 metrics_endpoint=$(terraform output -raw metrics_ingestion_endpoint)
 
 echo "Azure resources have been deployed successfully to ${FUNCTIONS_RESOURCE_GROUP_NAME}."
-echo "Azure Function endpoint: ${function_app_endpoint}"
-echo "OpenTelemetry Collector endpoint: ${collector_endpoint}"
+echo "Azure Function endpoint: https://${function_app_endpoint}"
+echo "OpenTelemetry Collector endpoint: https://${collector_endpoint}"
 echo "Event Hub Namespace endpoint: ${event_hub_namespace_endpoint}"
+echo
+echo "Export the following environment variables to configure the OpenTelemetry Collector endpoints:"
 echo "export LOGS_ENDPOINT='${logs_endpoint}'"
 echo "export TRACES_ENDPOINT='${traces_endpoint}'"
 echo "export METRICS_ENDPOINT='${metrics_endpoint}'"
-echo "You can now deploy the application by running:"
+echo
+echo "Deploy the sample Functions app by running the following command:"
 echo "func azure functionapp publish ${function_app_name}"

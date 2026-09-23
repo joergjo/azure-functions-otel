@@ -96,6 +96,12 @@ dcr_resource_id=$(az deployment group show \
   --query properties.outputs.dcrResourceId.value \
   --output tsv)
 
+collector_endpoint=$(az deployment group show \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --query properties.outputs.appServiceEndpoint.value \
+  --output tsv)
+
 echo "Creating role assignment for the OTel Collector service principal on the Data Collection Rule (DCR)..."
 
 az role assignment create \
@@ -106,11 +112,14 @@ az role assignment create \
   --output none
 
 echo "Azure resources have been deployed successfully to ${resource_group_name}." 
-echo "Azure Function endpoint: ${func_endpoint}"
+echo "Azure Function endpoint: https://${func_endpoint}"
+echo "OpenTelemetry Collector endpoint: https://${collector_endpoint}"
 echo "Event Hub Namespace endpoint: ${ehns_endpoint}"
+echo
+echo "Export the following environment variables to configure the OpenTelemetry Collector endpoints:"
 echo "export LOGS_ENDPOINT='${log_ingestions_endpoint}'"
 echo "export TRACES_ENDPOINT='${trace_ingestion_endpoint}'"
 echo "export METRICS_ENDPOINT='${metrics_ingestion_endpoint}'"
-
-echo "You can now deploy the application by running the following command:"
+echo
+echo "Deploy the sample Functions app by running the following command:"
 echo "func azure functionapp publish ${func_name}"
