@@ -15,9 +15,9 @@ async function isReady(): Promise<boolean> {
     return await tracer.startActiveSpan(
         'isReady',
         { kind: SpanKind.INTERNAL },
-        async (span) => {
+        async (activeSpan) => {
             const isReady = redisClient.isReady;
-            span.end();
+            activeSpan.end();
             return isReady;
         }
     );
