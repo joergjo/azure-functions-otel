@@ -1,6 +1,6 @@
 import { shutdownOTel } from './instrumentation';
 import { app, AppStartContext } from '@azure/functions';
-import { createClient, RedisClientType } from 'redis';
+import { createClient, OpenTelemetry, RedisClientType } from 'redis';
 import { logger } from './logger';
 
 let redisClient: RedisClientType;
@@ -61,6 +61,18 @@ let redisClient: RedisClientType;
 
 app.hook.appStart(async (_: AppStartContext) => {
     logger.info('Function app is starting up');
+
+    OpenTelemetry.init({
+        metrics: {
+            enabled: true,
+            enabledMetricGroups: [
+                'command',
+                'connection-basic',
+                'connection-advanced',
+                'resiliency',
+            ],
+        },
+    });
 
     redisClient = createClient({
         url: process.env.RedisConnectionString,
