@@ -4,7 +4,7 @@
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "EventHubConnectionString": "<INSERT_YOUR_EVENT_HUB_CONNECTION_STRING>",
-    "EventHubName": "debug",
+    "EventHubName": "test",
     "ConsumerGroup": "$Default",
     "RedisConnectionString": "redis://localhost:6379",
     "RedisPassword": "",
