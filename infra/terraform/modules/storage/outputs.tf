@@ -12,3 +12,8 @@ output "collector_config_url" {
   description = "Public URL of the deployed OpenTelemetry Collector configuration."
   value       = azurerm_storage_blob.collector_config.url
 }
+
+output "collector_config_content_md5" {
+  description = "MD5 hash of the deployed OpenTelemetry Collector configuration content."
+  value       = azurerm_storage_blob.collector_config.content_md5
+}

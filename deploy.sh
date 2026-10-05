@@ -6,28 +6,11 @@ if [ -z "$FUNCTIONS_RESOURCE_GROUP_NAME" ]; then
     exit 1
 fi
 
-if [ -z "$CLIENT_ID" ]; then
-    echo "CLIENT_ID is not set. Please set it to the Application (Client) ID of the OTel Collector service principal."
-    exit 1
-fi
-
-if [ -z "$CLIENT_SECRET" ]; then
-    echo "CLIENT_SECRET is not set. Please set it to the client secret of the OTel Collector service principal."
-    exit 1
-fi
-
-if [ -z "$TENANT_ID" ]; then
-    echo "TENANT_ID is not set. Please set it to the tenant ID of the OTel Collector service principal."
-    exit 1
-fi
-
 resource_group_name="$FUNCTIONS_RESOURCE_GROUP_NAME"
 runtime=${FUNCTIONS_RUNTIME:-"node"}
 version=${FUNCTIONS_RUNTIME_VERSION:-"24"}
 location=${EVENTHUB_LOCATION:-swedencentral}
 deployment_name="main-$(date +%s)"
-
-collector_sp_id=$(az ad sp show --id "$CLIENT_ID" --query id --output tsv)
 
 sampler_parameters=()
 if [ -n "${SAMPLER:-}" ]; then
@@ -54,7 +37,6 @@ func_endpoint=$(az deployment group create \
   --name "$deployment_name" \
   --template-file ./infra/bicep/main.bicep\
   --parameters functionAppRuntime="$runtime" functionAppRuntimeVersion="$version" \
-    clientId="$CLIENT_ID" clientSecret="$CLIENT_SECRET" tenantId="$TENANT_ID" \
     "${collector_parameters[@]}" \
     "${sampler_parameters[@]}" \
   --query properties.outputs.functionAppEndpoint.value \
@@ -96,16 +78,22 @@ dcr_resource_id=$(az deployment group show \
   --query properties.outputs.dcrResourceId.value \
   --output tsv)
 
+collector_identity_principal_id=$(az deployment group show \
+  --resource-group "$resource_group_name" \
+  --name "$deployment_name" \
+  --query properties.outputs.collectorIdentityPrincipalId.value \
+  --output tsv)
+
 collector_endpoint=$(az deployment group show \
   --resource-group "$resource_group_name" \
   --name "$deployment_name" \
   --query properties.outputs.appServiceEndpoint.value \
   --output tsv)
 
-echo "Creating role assignment for the OTel Collector service principal on the Data Collection Rule (DCR)..."
+echo "Creating role assignment for the OTel Collector managed identity on the Data Collection Rule (DCR)..."
 
 az role assignment create \
-  --assignee-object-id "$collector_sp_id" \
+  --assignee-object-id "$collector_identity_principal_id" \
   --assignee-principal-type ServicePrincipal \
   --role "3913510d-42f4-4e42-8a64-420c390055eb" \
   --scope "$dcr_resource_id" \

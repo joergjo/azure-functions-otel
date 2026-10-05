@@ -93,27 +93,6 @@ variable "collector_image_tag" {
   }
 }
 
-variable "client_id" {
-  description = "Client ID used by the OpenTelemetry Collector."
-  type        = string
-}
-
-variable "client_secret" {
-  description = "Client secret used by the OpenTelemetry Collector."
-  type        = string
-  sensitive   = true
-}
-
-variable "tenant_id" {
-  description = "Tenant ID used by the OpenTelemetry Collector."
-  type        = string
-}
-
-variable "collector_principal_id" {
-  description = "Object ID of the OpenTelemetry Collector service principal."
-  type        = string
-}
-
 variable "otel_traces_sampler" {
   description = "Value for the Function App's OTEL_TRACES_SAMPLER setting. Left unset when empty."
   type        = string

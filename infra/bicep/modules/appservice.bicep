@@ -19,16 +19,6 @@ param appServiceTier string
 @minLength(1)
 param collectorImageTag string
 
-@description('Client ID used by the OpenTelemetry Collector.')
-param clientId string
-
-@secure()
-@description('Client secret used by the OpenTelemetry Collector.')
-param clientSecret string
-
-@description('Tenant ID used by the OpenTelemetry Collector.')
-param tenantId string
-
 @description('Azure Monitor logs ingestion endpoint.')
 param logsEndpoint string
 
@@ -41,6 +31,9 @@ param metricsEndpoint string
 @description('Absolute URL of the OpenTelemetry Collector configuration.')
 param collectorConfigUrl string
 
+@description('Content hash of the OpenTelemetry Collector configuration, used only to force an App Service restart when the config content changes.')
+param collectorConfigHash string
+
 var collectorAppSettings = [
   {
     name: 'WEBSITES_PORT'
@@ -52,15 +45,7 @@ var collectorAppSettings = [
   }
   {
     name: 'CLIENT_ID'
-    value: clientId
-  }
-  {
-    name: 'CLIENT_SECRET'
-    value: clientSecret
-  }
-  {
-    name: 'TENANT_ID'
-    value: tenantId
+    value: userAssignedIdentity.properties.clientId
   }
   {
     name: 'LOGS_ENDPOINT'
@@ -74,7 +59,20 @@ var collectorAppSettings = [
     name: 'METRICS_ENDPOINT'
     value: metricsEndpoint
   }
+  {
+    // Not read by the collector; App Service restarts whenever app settings
+    // change, which guarantees a restart (and config reload) exactly when
+    // the config content actually changes, since appCommandLine's blob URL
+    // never changes between deployments.
+    name: 'COLLECTOR_CONFIG_HASH'
+    value: collectorConfigHash
+  }
 ]
+
+resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  name: 'uai-collector-${resourceToken}'
+  location: location
+}
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' = {
   name: 'asp-${resourceToken}'
@@ -95,7 +93,10 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
   location: location
   kind: 'app,linux,container'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedIdentity.id}': {}
+    }
   }
   properties: {
     serverFarmId: appServicePlan.id
@@ -118,3 +119,4 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
 }
 
 output appServiceEndpoint string = appService.properties.defaultHostName
+output collectorIdentityPrincipalId string = userAssignedIdentity.properties.principalId

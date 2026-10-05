@@ -45,6 +45,10 @@ resource uploadCollectorConfig 'Microsoft.Resources/deploymentScripts@2023-08-01
   location: location
   kind: 'AzureCLI'
   properties: {
+    // deploymentScripts resources are idempotent and otherwise only run once
+    // for a given resource name; tie forceUpdateTag to the config content so
+    // the upload reruns whenever (and only when) the file actually changes.
+    forceUpdateTag: uniqueString(collectorConfig)
     azCliVersion: '2.74.0'
     cleanupPreference: 'OnSuccess'
     retentionInterval: 'P1D'
@@ -97,3 +101,4 @@ resource collectorConfigBlobDiagnostics 'Microsoft.Insights/diagnosticSettings@2
 }
 
 output collectorConfigUrl string = '${storage.properties.primaryEndpoints.blob}config/collector.deployed.yaml'
+output collectorConfigHash string = uniqueString(collectorConfig)

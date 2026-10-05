@@ -27,13 +27,3 @@ variable "resource_token" {
     error_message = "resource_token must contain 3-20 lowercase letters or digits."
   }
 }
-
-variable "collector_principal_id" {
-  description = "Object ID of the OpenTelemetry Collector service principal."
-  type        = string
-
-  validation {
-    condition     = can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.collector_principal_id))
-    error_message = "collector_principal_id must be a valid UUID."
-  }
-}

@@ -4,9 +4,6 @@ umask 077
 
 required_variables=(
   FUNCTIONS_RESOURCE_GROUP_NAME
-  CLIENT_ID
-  CLIENT_SECRET
-  TENANT_ID
 )
 
 for variable_name in "${required_variables[@]}"; do
@@ -40,11 +37,6 @@ export TF_VAR_resource_group_name="$FUNCTIONS_RESOURCE_GROUP_NAME"
 export TF_VAR_location="${EVENTHUB_LOCATION:-swedencentral}"
 export TF_VAR_function_app_runtime="${FUNCTIONS_RUNTIME:-node}"
 export TF_VAR_function_app_runtime_version="${FUNCTIONS_RUNTIME_VERSION:-24}"
-export TF_VAR_client_id="$CLIENT_ID"
-export TF_VAR_client_secret="$CLIENT_SECRET"
-export TF_VAR_tenant_id="$TENANT_ID"
-export TF_VAR_collector_principal_id
-TF_VAR_collector_principal_id=$(az ad sp show --id "$CLIENT_ID" --query id --output tsv)
 
 if [ -n "${COLLECTOR_VERSION:-}" ]; then
   export TF_VAR_collector_image_tag="$COLLECTOR_VERSION"

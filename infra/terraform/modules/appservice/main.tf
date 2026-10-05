@@ -1,3 +1,17 @@
+resource "azurerm_user_assigned_identity" "collector" {
+  name                = "uai-collector-${var.resource_token}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  tags                = var.tags
+}
+
+resource "azurerm_role_assignment" "monitoring_metrics_publisher" {
+  scope                = var.data_collection_rule_resource_id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_user_assigned_identity.collector.principal_id
+  principal_type       = "ServicePrincipal"
+}
+
 resource "azurerm_service_plan" "collector" {
   name                = "asp-${var.resource_token}"
   resource_group_name = var.resource_group_name
@@ -26,18 +40,22 @@ resource "azurerm_linux_web_app" "collector" {
   tags                                     = var.tags
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.collector.id]
   }
 
   app_settings = {
     WEBSITES_PORT    = "4318"
     HTTP20_ONLY_PORT = "4317"
-    CLIENT_ID        = var.client_id
-    CLIENT_SECRET    = var.client_secret
-    TENANT_ID        = var.tenant_id
+    CLIENT_ID        = azurerm_user_assigned_identity.collector.client_id
     LOGS_ENDPOINT    = var.logs_endpoint
     TRACES_ENDPOINT  = var.traces_endpoint
     METRICS_ENDPOINT = var.metrics_endpoint
+    # Not read by the collector; App Service restarts whenever app settings
+    # change, which guarantees a restart (and config reload) exactly when
+    # the config content actually changes, since app_command_line's blob URL
+    # never changes between deployments.
+    COLLECTOR_CONFIG_HASH = var.collector_config_content_md5
   }
 
   site_config {
@@ -65,6 +83,10 @@ resource "azurerm_linux_web_app" "collector" {
       }
     }
   }
+
+  depends_on = [
+    azurerm_role_assignment.monitoring_metrics_publisher,
+  ]
 }
 
 resource "azapi_update_resource" "http2_proxy" {

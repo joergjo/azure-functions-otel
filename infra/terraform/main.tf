@@ -7,10 +7,9 @@ resource "azurerm_resource_group" "this" {
 module "monitoring" {
   source = "./modules/monitoring"
 
-  resource_group_name    = azurerm_resource_group.this.name
-  location               = azurerm_resource_group.this.location
-  resource_token         = local.resource_token
-  collector_principal_id = var.collector_principal_id
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  resource_token      = local.resource_token
 }
 
 module "eventhubs" {
@@ -46,20 +45,19 @@ module "storage" {
 module "appservice" {
   source = "./modules/appservice"
 
-  resource_group_name  = azurerm_resource_group.this.name
-  location             = azurerm_resource_group.this.location
-  resource_token       = local.resource_token
-  app_service_sku      = var.app_service_sku
-  app_service_tier     = var.app_service_tier
-  collector_image_tag  = var.collector_image_tag
-  client_id            = var.client_id
-  client_secret        = var.client_secret
-  tenant_id            = var.tenant_id
-  logs_endpoint        = module.monitoring.log_ingestion_endpoint
-  traces_endpoint      = module.monitoring.trace_ingestion_endpoint
-  metrics_endpoint     = module.monitoring.metrics_ingestion_endpoint
-  collector_config_url = module.storage.collector_config_url
-  tags                 = local.tags
+  resource_group_name              = azurerm_resource_group.this.name
+  location                         = azurerm_resource_group.this.location
+  resource_token                   = local.resource_token
+  app_service_sku                  = var.app_service_sku
+  app_service_tier                 = var.app_service_tier
+  collector_image_tag              = var.collector_image_tag
+  logs_endpoint                    = module.monitoring.log_ingestion_endpoint
+  traces_endpoint                  = module.monitoring.trace_ingestion_endpoint
+  metrics_endpoint                 = module.monitoring.metrics_ingestion_endpoint
+  collector_config_url             = module.storage.collector_config_url
+  collector_config_content_md5     = module.storage.collector_config_content_md5
+  data_collection_rule_resource_id = module.monitoring.data_collection_rule_resource_id
+  tags                             = local.tags
 }
 
 module "functions" {

@@ -49,16 +49,6 @@ param appServiceTier string = 'PremiumV4'
 @minLength(1)
 param collectorImageTag string = '0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1'
 
-@description('Client ID used by the OpenTelemetry Collector.')
-param clientId string
-
-@secure()
-@description('Client secret used by the OpenTelemetry Collector.')
-param clientSecret string
-
-@description('Tenant ID used by the OpenTelemetry Collector.')
-param tenantId string
-
 @description('Value for the Function App OTEL_TRACES_SAMPLER setting. Left unset when empty.')
 param otelTracesSampler string = ''
 
@@ -110,13 +100,11 @@ module appService 'modules/appservice.bicep' = {
     appServiceSku: appServiceSku
     appServiceTier: appServiceTier
     collectorImageTag: collectorImageTag
-    clientId: clientId
-    clientSecret: clientSecret
-    tenantId: tenantId
     logsEndpoint: monitoring.outputs.logIngestionEndpoint
     tracesEndpoint: monitoring.outputs.traceIngestionEndpoint
     metricsEndpoint: monitoring.outputs.metricsIngestionEndpoint
     collectorConfigUrl: storage.outputs.collectorConfigUrl
+    collectorConfigHash: storage.outputs.collectorConfigHash
   }
 }
 
@@ -149,3 +137,4 @@ output traceIngestionEndpoint string = monitoring.outputs.traceIngestionEndpoint
 output logIngestionEndpoint string = monitoring.outputs.logIngestionEndpoint
 output metricsIngestionEndpoint string = monitoring.outputs.metricsIngestionEndpoint
 output dcrResourceId string = monitoring.outputs.dataCollectionRuleResourceId
+output collectorIdentityPrincipalId string = appService.outputs.collectorIdentityPrincipalId

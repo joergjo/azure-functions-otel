@@ -55,22 +55,6 @@ variable "collector_image_tag" {
   }
 }
 
-variable "client_id" {
-  description = "Client ID used by the OpenTelemetry Collector."
-  type        = string
-}
-
-variable "client_secret" {
-  description = "Client secret used by the OpenTelemetry Collector."
-  type        = string
-  sensitive   = true
-}
-
-variable "tenant_id" {
-  description = "Tenant ID used by the OpenTelemetry Collector."
-  type        = string
-}
-
 variable "logs_endpoint" {
   description = "Azure Monitor logs ingestion endpoint."
   type        = string
@@ -93,6 +77,21 @@ variable "collector_config_url" {
   validation {
     condition     = can(regex("^https://", var.collector_config_url))
     error_message = "collector_config_url must be an HTTPS URL."
+  }
+}
+
+variable "collector_config_content_md5" {
+  description = "MD5 hash of the OpenTelemetry Collector configuration, used only to force an App Service restart when the config content changes."
+  type        = string
+}
+
+variable "data_collection_rule_resource_id" {
+  description = "Resource ID of the Data Collection Rule that receives OpenTelemetry Collector telemetry."
+  type        = string
+
+  validation {
+    condition     = can(regex("^/subscriptions/.+/resourceGroups/.+/providers/Microsoft\\.Insights/dataCollectionRules/.+$", var.data_collection_rule_resource_id))
+    error_message = "data_collection_rule_resource_id must be a valid Data Collection Rule resource ID."
   }
 }
 

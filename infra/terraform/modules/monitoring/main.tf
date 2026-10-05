@@ -2,8 +2,6 @@ data "azurerm_resource_group" "this" {
   name = var.resource_group_name
 }
 
-data "azurerm_client_config" "current" {}
-
 resource "azurerm_log_analytics_workspace" "this" {
   name                = "log-${var.resource_token}"
   location            = var.location
@@ -52,24 +50,4 @@ data "azapi_resource" "application_insights" {
   }
 
   depends_on = [azapi_resource.application_insights]
-}
-
-resource "azapi_resource" "monitoring_metrics_publisher" {
-  type      = "Microsoft.Authorization/roleAssignments@2022-04-01"
-  name      = uuidv5("url", "${data.azapi_resource.application_insights.output.data_collection_rule_resource_id}:${var.collector_principal_id}:Monitoring Metrics Publisher")
-  parent_id = data.azapi_resource.application_insights.output.data_collection_rule_resource_id
-
-  body = {
-    properties = {
-      roleDefinitionId = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/3913510d-42f4-4e42-8a64-420c390055eb"
-      principalId      = var.collector_principal_id
-      principalType    = "ServicePrincipal"
-    }
-  }
-
-  retry = {
-    error_message_regex  = ["ResourceNotFound", "ParentResourceNotFound"]
-    interval_seconds     = 5
-    max_interval_seconds = 30
-  }
 }
