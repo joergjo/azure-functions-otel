@@ -1,7 +1,8 @@
 import { app, InvocationContext } from '@azure/functions';
 import { redisClient } from '../index';
-import { tracer } from '../trace';
+import { withInvocationSpan } from '../trace';
 import { logger } from '../logger';
+import { Span } from '@opentelemetry/api';
 
 const productionSlots = ['blue', '$Default'];
 
@@ -12,7 +13,7 @@ interface MessageType {
 
 export async function invoke(
     messages: MessageType | MessageType[],
-    _context: InvocationContext
+    context: InvocationContext
 ): Promise<void> {
     if (!isProduction()) {
         logger.info(
@@ -20,38 +21,39 @@ export async function invoke(
         );
         return;
     }
-    const mustCrash = await tracer.startActiveSpan(
-        'message-handler',
-        async (span) => {
-            try {
-                const messageCount = Array.isArray(messages)
-                    ? messages.length
-                    : 1;
-                span.setAttribute('message.count', messageCount);
-                logger.info({ messageCount }, 'Processing messages');
-                if (Array.isArray(messages)) {
-                    for (const message of messages) {
-                        await handleMessage(message);
-                    }
-                } else {
-                    await handleMessage(messages);
-                }
-                return false;
-            } catch (error) {
-                logger.error({ error: error }, 'Error processing messages');
-                span.recordException(error as Error);
-                return true;
-            } finally {
-                span.end();
-            }
-        }
-    );
 
+    const mustCrash = await invokeWithSpan(messages, context);
     if (mustCrash) {
         logger.fatal('Crashing due to message handling failure');
         process.exit(1);
     }
 }
+
+const invokeWithSpan = withInvocationSpan(async function (
+    messages: MessageType | MessageType[],
+    _context: InvocationContext,
+    span: Span
+): Promise<boolean> {
+    let mustCrash = false;
+    try {
+        const messageCount = Array.isArray(messages) ? messages.length : 1;
+        span.setAttribute('message.count', messageCount);
+        logger.info({ messageCount }, 'Processing messages');
+        if (Array.isArray(messages)) {
+            for (const message of messages) {
+                await handleMessage(message);
+            }
+        } else {
+            await handleMessage(messages);
+        }
+    } catch (error) {
+        logger.error({ error: error }, 'Error processing messages');
+        span.recordException(error as Error);
+        mustCrash = true;
+    }
+
+    return mustCrash;
+});
 
 async function handleMessage(message: MessageType): Promise<void> {
     if (!redisClient.isReady || (await redisClient.get('fail')) === 'on') {
