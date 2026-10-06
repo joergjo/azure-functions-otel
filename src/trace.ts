@@ -5,7 +5,7 @@ import opentelemetry, {
     SpanOptions,
     SpanStatusCode,
 } from '@opentelemetry/api';
-import { getInvocationAttributes } from './resource';
+import { getInvocationAttributes } from './attributes';
 
 const serviceName = process.env.OTEL_SERVICE_NAME || 'demo-function-app';
 
@@ -19,13 +19,14 @@ type InvocationHandler<TInput, TResult> = (
 
 export function withInvocationSpan<TInput, TResult>(
     handler: InvocationHandler<TInput, TResult>,
-    options: SpanOptions = {}
+    options: SpanOptions = {},
+    name?: string
 ): (input: TInput, context: InvocationContext) => Promise<TResult> {
     return async (input, context) =>
         tracer.startActiveSpan(
-            context.functionName,
+            name ?? context.functionName,
             {
-                kind: SpanKind.INTERNAL,
+                kind: options.kind ?? SpanKind.INTERNAL,
                 ...options,
                 attributes: {
                     ...getInvocationAttributes(context),
