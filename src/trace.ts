@@ -26,7 +26,7 @@ export function withInvocationSpan<TInput, TResult>(
         tracer.startActiveSpan(
             name ?? context.functionName,
             {
-                kind: options.kind ?? SpanKind.INTERNAL,
+                kind: options.kind ?? SpanKind.SERVER,
                 ...options,
                 attributes: {
                     ...getInvocationAttributes(context),
@@ -36,7 +36,9 @@ export function withInvocationSpan<TInput, TResult>(
             async (span) => {
                 try {
                     const result = await handler(input, context, span);
-                    span.setStatus({ code: SpanStatusCode.OK });
+                    // Note that it may seem logical to set the status to OK here,
+                    // but the default of UNSET implies success already.
+                    // span.setStatus({ code: SpanStatusCode.OK });
                     return result;
                 } catch (error) {
                     span.recordException(error as Error);
