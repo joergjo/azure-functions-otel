@@ -91,8 +91,8 @@ app.hook.appStart(async (_: AppStartContext) => {
 });
 
 app.hook.appTerminate(async () => {
-    await shutdownOTel();
     logger.info('Function app is shutting down');
+    await shutdownOTel();
 });
 
 export { redisClient };

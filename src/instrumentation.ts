@@ -39,7 +39,16 @@ export async function shutdownOTel() {
     await sdk.shutdown();
 }
 
-// This alternate version is based on the Azure Functions specific OpenTelemetry guidance, which is outdated and should be avoided.
+// This alternate version is based on the Azure Functions specific OpenTelemetry guidance.
+// This has a number of flaws:
+// - The  MeterProvider  is not registered globally. Application metrics created with  metrics.getMeter()  use the global no-op provider and are never exported. Passing  meterProvider  to  registerInstrumentations()  only covers instrumentation-created metrics.
+// - The  LoggerProvider  is not registered globally. Application logs emitted through the OpenTelemetry Logs API similarly use the no-op global provider. Passing it to  registerInstrumentations()  only makes it available to instrumentations such as  AzureFunctionsInstrumentation .
+// - It uses  SimpleSpanProcessor . Every ended span is exported immediately, adding network/export latency and overhead to invocation processing.  BatchSpanProcessor  is normally preferable.
+// - It uses  SimpleLogRecordProcessor . Logs are also exported individually rather than batched, creating the same throughput and latency problem.
+// - It has no shutdown or flush lifecycle. None of the tracer, logger, or meter providers are shut down during  appTerminate , risking loss of buffered metrics and in-flight telemetry.
+// - It manually reconstructs  NodeSDK . This makes provider registration, batching, resource handling, and lifecycle management easy to omit or configure inconsistently—as this sample demonstrates.
+// - Duplicate initialization remains hazardous. Without the added  NODE_OPTIONS  guard, preloading  @opentelemetry/auto-instrumentations-node/register  can register another SDK first, causing application spans and metrics to bind to the wrong providers.
+
 // import { AzureFunctionsInstrumentation } from '@azure/functions-opentelemetry-instrumentation';
 // import { getNodeAutoInstrumentations, getResourceDetectors } from '@opentelemetry/auto-instrumentations-node';
 // import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc';

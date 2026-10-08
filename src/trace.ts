@@ -7,9 +7,7 @@ import opentelemetry, {
 } from '@opentelemetry/api';
 import { getInvocationAttributes } from './attributes';
 
-const serviceName = process.env.OTEL_SERVICE_NAME || 'demo-function-app';
-
-export const tracer = opentelemetry.trace.getTracer(serviceName, '0.1.0');
+export const tracer = opentelemetry.trace.getTracer('azure.function', '0.1.0');
 
 type InvocationHandler<TInput, TResult> = (
     input: TInput,
@@ -26,8 +24,8 @@ export function withInvocationSpan<TInput, TResult>(
         tracer.startActiveSpan(
             name ?? context.functionName,
             {
-                kind: options.kind ?? SpanKind.SERVER,
                 ...options,
+                kind: options.kind ?? SpanKind.SERVER,
                 attributes: {
                     ...getInvocationAttributes(context),
                     ...options.attributes,
