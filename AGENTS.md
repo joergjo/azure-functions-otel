@@ -5,7 +5,7 @@ This is a an Azure Functions Node.js/TypeScript sample using the programming mod
 The project demonstrates how to integrate OpenTelemetry with Azure Functions, including both automatic and manual instrumentation, and how to route telemetry to an OpenTelemetry Collector and ultimately to Azure Monitor.
 
 The OpenTelemetry bootstrapping code follows the OpenTelemetry guidelines for Node.js applications,
-and _not the Azure Functions-specific OpenTelemetry guidance, which is outdated and should be avoided.
+and not the Azure Functions-specific OpenTelemetry guidance, which is outdated and should be avoided.
 
 ## Build, run, and validation
 
