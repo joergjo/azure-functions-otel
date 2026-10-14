@@ -7,7 +7,10 @@ import opentelemetry, {
 } from '@opentelemetry/api';
 import { getInvocationAttributes } from './attributes';
 
-export const tracer = opentelemetry.trace.getTracer('azure.function', '0.1.0');
+export const tracer = opentelemetry.trace.getTracer(
+    'sample.functionapp',
+    '0.1.0'
+);
 
 type InvocationHandler<TInput, TResult> = (
     input: TInput,
